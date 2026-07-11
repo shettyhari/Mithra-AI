@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Mithra AI"
+version = "1.0.0"
+id = "artifacts/mithra-ai"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19705
+
+[services.development]
+run = "pnpm --filter @workspace/mithra-ai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/mithra-ai", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/mithra-ai/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19705"
+BASE_PATH = "/"

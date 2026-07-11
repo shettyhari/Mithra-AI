@@ -1,0 +1,853 @@
+You are a team of world-class software engineers with 30+ years of experience consisting of:
+
+• Principal AI Architect
+• Senior Full Stack Engineer
+• Senior UI/UX Designer
+• DevOps Engineer
+• Cyber Security Expert
+• Database Architect
+• QA Automation Lead
+• Prompt Engineer
+• Performance Optimization Engineer
+• Product Manager
+
+Your job is to build a COMPLETE PRODUCTION READY AI FAMILY ASSISTANT WEB APPLICATION.
+
+Do NOT create demos, placeholders or mock implementations.
+
+Everything should be fully functional.
+
+=========================================================
+PROJECT NAME
+=========================================================
+
+Mithra AI
+
+An enterprise-grade AI Operating System for my family.
+
+It should feel like Google Gemini + ChatGPT + Apple Intelligence combined.
+
+Premium.
+
+Luxury.
+
+Modern.
+
+Fast.
+
+Minimal.
+
+Highly animated.
+
+Production Ready.
+
+=========================================================
+PRIMARY OBJECTIVE
+=========================================================
+
+Create an AI assistant platform where every family member gets their own secure AI assistant while an Admin controls everything.
+
+The AI should remember every user's conversations separately.
+
+No user should ever access another user's memory.
+
+The Admin has complete access to everything.
+
+=========================================================
+TECH STACK
+=========================================================
+
+Frontend
+
+Next.js 15
+React
+TypeScript
+TailwindCSS
+Shadcn UI
+Framer Motion
+GSAP
+Lucide Icons
+React Query
+
+Backend
+
+Node.js
+Next API Routes
+Prisma ORM
+
+Database
+
+PostgreSQL
+
+Authentication
+
+Google OAuth
+JWT
+Session Management
+
+Storage
+
+Separate storage for every user
+
+Deployment
+
+Docker
+Vercel Compatible
+Production Environment Variables
+
+=========================================================
+USER ROLES
+=========================================================
+
+Initially create
+
+1 Super Admin
+
+Email configurable
+
+Password configurable
+
+2 Family Members
+
+Google Login
+
+Admin can create unlimited users later.
+
+=========================================================
+LOGIN
+=========================================================
+
+Google Login
+
+Email Login
+
+Password Reset
+
+Secure Sessions
+
+Remember Login
+
+Logout Everywhere
+
+=========================================================
+SEPARATE USER STORAGE
+=========================================================
+
+Every logged in user gets
+
+Own AI Memory
+
+Own Documents
+
+Own Images
+
+Own Voice Notes
+
+Own Chat History
+
+Own AI Preferences
+
+Own Settings
+
+Own Knowledge Base
+
+Own Integrations
+
+No cross access.
+
+=========================================================
+AI MODELS
+=========================================================
+
+Admin Settings should allow
+
+OpenAI API Key
+
+Gemini API Key
+
+Claude API Key
+
+Groq API
+
+OpenRouter
+
+DeepSeek
+
+Ollama Local
+
+Azure OpenAI
+
+Anthropic
+
+Future AI Providers
+
+Enable/Disable models
+
+Default model
+
+Temperature
+
+Max Tokens
+
+Reasoning
+
+Streaming
+
+=========================================================
+CHAT
+=========================================================
+
+Like Gemini
+
+Like ChatGPT
+
+Modern
+
+Streaming
+
+Markdown
+
+Code Highlighting
+
+Tables
+
+Images
+
+Voice Input
+
+Voice Output
+
+Typing Animation
+
+Message Editing
+
+Regenerate
+
+Copy
+
+Share
+
+Export PDF
+
+Export DOCX
+
+Export Markdown
+
+Pinned Chats
+
+Folders
+
+Search
+
+Archive
+
+Delete
+
+Restore
+
+=========================================================
+MEMORY
+=========================================================
+
+Each AI should remember
+
+Previous chats
+
+Preferences
+
+Names
+
+Projects
+
+Files
+
+Tasks
+
+Personal instructions
+
+Conversation history
+
+WITHOUT sharing memory between users.
+
+Each user has independent vector memory.
+
+=========================================================
+VOICE AI
+=========================================================
+
+Voice Commands
+
+Speech to Text
+
+Text to Speech
+
+Wake Word
+
+Continuous Listening
+
+Microphone Selector
+
+Voice Selection
+
+Male/Female
+
+Speed
+
+Pitch
+
+Multiple Languages
+
+=========================================================
+AI CAPABILITIES
+=========================================================
+
+Chat
+
+Reasoning
+
+Code
+
+Documents
+
+Email Writing
+
+Summaries
+
+Translation
+
+Image Analysis
+
+PDF Analysis
+
+Excel Analysis
+
+Presentation Analysis
+
+Vision
+
+OCR
+
+Web Search
+
+Calendar
+
+Reminders
+
+Task Planning
+
+Knowledge Retrieval
+
+Custom Instructions
+
+=========================================================
+FAMILY COMMUNICATION
+=========================================================
+
+One unique feature.
+
+Example
+
+User1 says
+
+"Tell User2 dinner is ready."
+
+AI should internally notify User2.
+
+Example
+
+"Update User2 shopping list"
+
+AI updates User2's list.
+
+Example
+
+"Share this document with User2"
+
+Permission request.
+
+User2 receives notification.
+
+Family shared AI communication layer.
+
+=========================================================
+NOTIFICATION SYSTEM
+=========================================================
+
+Real-time notifications
+
+Browser Notifications
+
+In-App Notifications
+
+Unread Counter
+
+Message Requests
+
+Task Assignment
+
+Shared Notes
+
+=========================================================
+ADMIN PANEL
+=========================================================
+
+Enterprise Dashboard.
+
+Beautiful.
+
+Premium.
+
+Admin can
+
+Manage Users
+
+Create Users
+
+Delete Users
+
+Suspend Users
+
+Reset Passwords
+
+Manage Storage
+
+Manage AI Models
+
+Manage API Keys
+
+Usage Analytics
+
+Token Consumption
+
+Costs
+
+System Logs
+
+Audit Logs
+
+Permissions
+
+Roles
+
+Memory Management
+
+Database Backup
+
+Restore Backup
+
+System Health
+
+Live Monitoring
+
+Active Sessions
+
+Login History
+
+Integrations
+
+Security Settings
+
+=========================================================
+INTEGRATIONS
+=========================================================
+
+Google Calendar
+
+Google Drive
+
+Gmail
+
+WhatsApp
+
+Telegram
+
+Slack
+
+Discord
+
+Notion
+
+GitHub
+
+Dropbox
+
+OneDrive
+
+Google Photos
+
+Spotify
+
+Weather
+
+Maps
+
+Home Assistant
+
+Smart Home
+
+Future Integrations
+
+=========================================================
+FILE MANAGEMENT
+=========================================================
+
+Upload
+
+PDF
+
+Word
+
+Excel
+
+PowerPoint
+
+Images
+
+Videos
+
+Audio
+
+ZIP
+
+Folders
+
+Drag Drop
+
+Version History
+
+AI Search
+
+=========================================================
+SEARCH
+=========================================================
+
+Global Search
+
+Chats
+
+Files
+
+Users
+
+Tasks
+
+Messages
+
+Voice Notes
+
+=========================================================
+TASK MANAGEMENT
+=========================================================
+
+Personal Tasks
+
+Shared Tasks
+
+Due Dates
+
+Notifications
+
+Kanban
+
+Calendar
+
+Recurring Tasks
+
+=========================================================
+SETTINGS
+=========================================================
+
+Theme
+
+Dark
+
+Light
+
+System
+
+Accent Colors
+
+Animations
+
+Accessibility
+
+Language
+
+Voice
+
+AI Preferences
+
+=========================================================
+SECURITY
+=========================================================
+
+HTTPS
+
+Rate Limiting
+
+JWT
+
+Encrypted Storage
+
+Secure Cookies
+
+CSRF Protection
+
+XSS Protection
+
+SQL Injection Prevention
+
+Password Hashing
+
+OAuth Security
+
+RBAC
+
+2FA Ready
+
+=========================================================
+DATABASE
+=========================================================
+
+Design complete normalized schema.
+
+Users
+
+Roles
+
+Permissions
+
+Chats
+
+Messages
+
+Files
+
+Notifications
+
+Integrations
+
+API Keys
+
+Memories
+
+Tasks
+
+Audit Logs
+
+Settings
+
+=========================================================
+AI MEMORY SYSTEM
+=========================================================
+
+Use embeddings.
+
+Vector Database support.
+
+Semantic Search.
+
+Long-term memory.
+
+Short-term memory.
+
+Conversation memory.
+
+Knowledge memory.
+
+=========================================================
+UI DESIGN
+=========================================================
+
+Gemini Inspired
+
+Apple Inspired
+
+Linear Inspired
+
+Vercel Inspired
+
+Premium
+
+Luxury
+
+Glass Morphism
+
+Soft Shadows
+
+Micro Animations
+
+Gradient Borders
+
+Motion Effects
+
+Responsive
+
+Desktop
+
+Tablet
+
+Mobile
+
+=========================================================
+DASHBOARD
+=========================================================
+
+Animated Sidebar
+
+Floating Chat
+
+Widgets
+
+Quick Actions
+
+Recent Chats
+
+Usage Graph
+
+Storage
+
+AI Models
+
+Calendar
+
+Tasks
+
+Notifications
+
+=========================================================
+QUALITY
+=========================================================
+
+Production Ready
+
+No TODO
+
+No Fake APIs
+
+No Placeholder Data
+
+Everything functional
+
+=========================================================
+TESTING
+=========================================================
+
+Write
+
+Unit Tests
+
+Integration Tests
+
+E2E Tests
+
+Performance Tests
+
+Security Tests
+
+Accessibility Tests
+
+=========================================================
+PERFORMANCE
+=========================================================
+
+Code Splitting
+
+Lazy Loading
+
+Streaming
+
+Caching
+
+Optimized Queries
+
+Image Optimization
+
+=========================================================
+DEVOPS
+=========================================================
+
+Docker
+
+Docker Compose
+
+Environment Variables
+
+Production Build
+
+Logging
+
+Monitoring
+
+CI/CD Ready
+
+=========================================================
+DOCUMENTATION
+=========================================================
+
+Generate
+
+README
+
+Architecture Diagram
+
+Folder Structure
+
+Database ER Diagram
+
+API Documentation
+
+Deployment Guide
+
+Admin Manual
+
+User Manual
+
+=========================================================
+DELIVERY
+=========================================================
+
+Do NOT stop after generating one file.
+
+Build the COMPLETE application.
+
+Create every folder.
+
+Every component.
+
+Every API.
+
+Every database migration.
+
+Every page.
+
+Every UI.
+
+Every backend.
+
+Every authentication flow.
+
+Every admin panel.
+
+Every integration placeholder with proper architecture.
+
+Every test.
+
+Every documentation.
+
+Do not skip anything.
+
+Keep building automatically until the entire project is complete.
+
+Before marking complete, perform:
+
+✔ Code Review
+✔ Security Review
+✔ Performance Audit
+✔ UI Audit
+✔ Accessibility Audit
+✔ QA Testing
+✔ Bug Fixes
+✔ Final Production Optimization
+
+Then deliver the final production-ready application with zero placeholder functionality.

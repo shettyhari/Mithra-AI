@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="mithraGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A855F7" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="24" fill="#0A0A0A" />
+  <path d="M25 70V30L50 55L75 30V70" stroke="url(#mithraGrad)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

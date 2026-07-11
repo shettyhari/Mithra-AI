@@ -3,20 +3,38 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Mithra AI Family Assistant API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: users
+    description: User management
+  - name: chats
+    description: Chat sessions
+  - name: messages
+    description: Chat messages
+  - name: files
+    description: File management
+  - name: tasks
+    description: Task management
+  - name: notifications
+    description: Notifications
+  - name: ai
+    description: AI model configuration
+  - name: admin
+    description: Admin operations
+  - name: dashboard
+    description: Dashboard data
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +42,1414 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── Users ────────────────────────────────────────────────────────────────
+
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+    patch:
+      operationId: updateMe
+      tags: [users]
+      summary: Update current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /users/me/settings:
+    get:
+      operationId: getUserSettings
+      tags: [users]
+      summary: Get user settings
+      responses:
+        "200":
+          description: User settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSettings"
+    patch:
+      operationId: updateUserSettings
+      tags: [users]
+      summary: Update user settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserSettingsUpdate"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSettings"
+
+  # ─── Chats ────────────────────────────────────────────────────────────────
+
+  /chats:
+    get:
+      operationId: listChats
+      tags: [chats]
+      summary: List user's chats
+      parameters:
+        - name: folder
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: archived
+          in: query
+          schema:
+            type: ["boolean", "null"]
+        - name: pinned
+          in: query
+          schema:
+            type: ["boolean", "null"]
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List of chats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Chat"
+    post:
+      operationId: createChat
+      tags: [chats]
+      summary: Create a new chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatInput"
+      responses:
+        "201":
+          description: Created chat
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Chat"
+
+  /chats/{chatId}:
+    get:
+      operationId: getChat
+      tags: [chats]
+      summary: Get chat by ID
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Chat
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Chat"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateChat
+      tags: [chats]
+      summary: Update chat (rename, pin, archive, folder)
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatUpdate"
+      responses:
+        "200":
+          description: Updated chat
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Chat"
+    delete:
+      operationId: deleteChat
+      tags: [chats]
+      summary: Delete a chat
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /chats/pinned:
+    get:
+      operationId: listPinnedChats
+      tags: [chats]
+      summary: Get pinned chats
+      responses:
+        "200":
+          description: Pinned chats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Chat"
+
+  /chats/recent:
+    get:
+      operationId: listRecentChats
+      tags: [chats]
+      summary: Get recent chats (last 10)
+      responses:
+        "200":
+          description: Recent chats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Chat"
+
+  # ─── Messages ────────────────────────────────────────────────────────────
+
+  /chats/{chatId}/messages:
+    get:
+      operationId: listMessages
+      tags: [messages]
+      summary: List messages in a chat
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a message and get AI response
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageInput"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessagePair"
+
+  /messages/{messageId}:
+    patch:
+      operationId: editMessage
+      tags: [messages]
+      summary: Edit a message
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageEdit"
+      responses:
+        "200":
+          description: Edited message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+    delete:
+      operationId: deleteMessage
+      tags: [messages]
+      summary: Delete a message
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /messages/{messageId}/regenerate:
+    post:
+      operationId: regenerateMessage
+      tags: [messages]
+      summary: Regenerate an AI response
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Regenerated message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+  # ─── Files ────────────────────────────────────────────────────────────────
+
+  /files:
+    get:
+      operationId: listFiles
+      tags: [files]
+      summary: List user's files
+      parameters:
+        - name: folder
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: type
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List of files
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserFile"
+    post:
+      operationId: uploadFile
+      tags: [files]
+      summary: Upload a file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileInput"
+      responses:
+        "201":
+          description: Uploaded file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserFile"
+
+  /files/{fileId}:
+    get:
+      operationId: getFile
+      tags: [files]
+      summary: Get file by ID
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: File
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserFile"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteFile
+      tags: [files]
+      summary: Delete a file
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /files/storage-summary:
+    get:
+      operationId: getStorageSummary
+      tags: [files]
+      summary: Get storage usage summary
+      responses:
+        "200":
+          description: Storage summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StorageSummary"
+
+  # ─── Tasks ────────────────────────────────────────────────────────────────
+
+  /tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List user's tasks
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: priority
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create a new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/{taskId}:
+    patch:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+    delete:
+      operationId: deleteTask
+      tags: [tasks]
+      summary: Delete a task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /tasks/upcoming:
+    get:
+      operationId: listUpcomingTasks
+      tags: [tasks]
+      summary: Get upcoming tasks (due soon)
+      responses:
+        "200":
+          description: Upcoming tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+
+  # ─── Notifications ────────────────────────────────────────────────────────
+
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List user's notifications
+      parameters:
+        - name: unreadOnly
+          in: query
+          schema:
+            type: ["boolean", "null"]
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{notificationId}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark notification as read
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    patch:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /notifications/unread-count:
+    get:
+      operationId: getUnreadNotificationCount
+      tags: [notifications]
+      summary: Get unread notification count
+      responses:
+        "200":
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnreadCount"
+
+  # ─── AI Config ────────────────────────────────────────────────────────────
+
+  /ai/config:
+    get:
+      operationId: getAiConfig
+      tags: [ai]
+      summary: Get AI configuration for current user
+      responses:
+        "200":
+          description: AI config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiConfig"
+
+  /ai/models:
+    get:
+      operationId: listAiModels
+      tags: [ai]
+      summary: List available AI models
+      responses:
+        "200":
+          description: Available models
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AiModel"
+
+  # ─── Dashboard ────────────────────────────────────────────────────────────
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/usage:
+    get:
+      operationId: getUsageStats
+      tags: [dashboard]
+      summary: Get token usage statistics (last 7 days)
+      responses:
+        "200":
+          description: Usage stats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UsageStat"
+
+  /dashboard/family-activity:
+    get:
+      operationId: getFamilyActivity
+      tags: [dashboard]
+      summary: Get family members activity summary (admin only)
+      responses:
+        "200":
+          description: Family activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FamilyMemberActivity"
+
+  # ─── Admin ────────────────────────────────────────────────────────────────
+
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [admin]
+      summary: List all users (admin only)
+      responses:
+        "200":
+          description: All users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUserView"
+    post:
+      operationId: adminCreateUser
+      tags: [admin]
+      summary: Create a new user (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUserInput"
+      responses:
+        "201":
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserView"
+
+  /admin/users/{userId}:
+    patch:
+      operationId: adminUpdateUser
+      tags: [admin]
+      summary: Update a user (admin only)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserView"
+    delete:
+      operationId: adminDeleteUser
+      tags: [admin]
+      summary: Delete a user (admin only)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /admin/ai-keys:
+    get:
+      operationId: adminGetAiKeys
+      tags: [admin]
+      summary: Get AI provider API keys (admin only)
+      responses:
+        "200":
+          description: AI keys
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiKeys"
+    patch:
+      operationId: adminUpdateAiKeys
+      tags: [admin]
+      summary: Update AI provider API keys (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiKeysUpdate"
+      responses:
+        "200":
+          description: Updated keys
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiKeys"
+
+  /admin/system-stats:
+    get:
+      operationId: adminGetSystemStats
+      tags: [admin]
+      summary: Get system stats (admin only)
+      responses:
+        "200":
+          description: System stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemStats"
+
+  /admin/audit-logs:
+    get:
+      operationId: adminListAuditLogs
+      tags: [admin]
+      summary: List audit logs (admin only)
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuditLog"
+
+  /admin/default-ai-config:
+    get:
+      operationId: adminGetDefaultAiConfig
+      tags: [admin]
+      summary: Get default AI config (admin only)
+      responses:
+        "200":
+          description: Default AI config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiConfig"
+    patch:
+      operationId: adminUpdateDefaultAiConfig
+      tags: [admin]
+      summary: Update default AI config for all users (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiConfigUpdate"
+      responses:
+        "200":
+          description: Updated config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiConfig"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    SuccessResponse:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+
+    UnreadCount:
+      type: object
+      required: [count]
+      properties:
+        count:
+          type: integer
+
+    # ─── User ────────────────────────────────────────────────────────────────
+
+    UserProfile:
+      type: object
+      required: [id, clerkId, email, name, role, createdAt]
+      properties:
+        id:
+          type: integer
+        clerkId:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [admin, member]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+
+    UserProfileUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+
+    UserSettings:
+      type: object
+      required: [id, userId]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        theme:
+          type: string
+          enum: [dark, light, system]
+        accentColor:
+          type: string
+        language:
+          type: string
+        animationsEnabled:
+          type: boolean
+        voiceEnabled:
+          type: boolean
+        voiceId:
+          type: ["string", "null"]
+        voiceSpeed:
+          type: number
+        voicePitch:
+          type: number
+        customInstructions:
+          type: ["string", "null"]
+        notificationsEnabled:
+          type: boolean
+
+    UserSettingsUpdate:
+      type: object
+      properties:
+        theme:
+          type: string
+        accentColor:
+          type: string
+        language:
+          type: string
+        animationsEnabled:
+          type: boolean
+        voiceEnabled:
+          type: boolean
+        voiceId:
+          type: ["string", "null"]
+        voiceSpeed:
+          type: number
+        voicePitch:
+          type: number
+        customInstructions:
+          type: ["string", "null"]
+        notificationsEnabled:
+          type: boolean
+
+    # ─── Chat ────────────────────────────────────────────────────────────────
+
+    Chat:
+      type: object
+      required: [id, userId, title, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        title:
+          type: string
+        model:
+          type: ["string", "null"]
+        folder:
+          type: ["string", "null"]
+        isPinned:
+          type: boolean
+        isArchived:
+          type: boolean
+        messageCount:
+          type: integer
+        lastMessage:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    ChatInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+        model:
+          type: string
+        folder:
+          type: ["string", "null"]
+
+    ChatUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        model:
+          type: ["string", "null"]
+        folder:
+          type: ["string", "null"]
+        isPinned:
+          type: boolean
+        isArchived:
+          type: boolean
+
+    # ─── Message ────────────────────────────────────────────────────────────
+
+    Message:
+      type: object
+      required: [id, chatId, role, content, createdAt]
+      properties:
+        id:
+          type: integer
+        chatId:
+          type: integer
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+        model:
+          type: ["string", "null"]
+        tokensUsed:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+
+    MessagePair:
+      type: object
+      required: [userMessage, assistantMessage]
+      properties:
+        userMessage:
+          $ref: "#/components/schemas/Message"
+        assistantMessage:
+          $ref: "#/components/schemas/Message"
+
+    MessageInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+        model:
+          type: ["string", "null"]
+
+    MessageEdit:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+
+    # ─── File ────────────────────────────────────────────────────────────────
+
+    UserFile:
+      type: object
+      required: [id, userId, name, type, size, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+        mimeType:
+          type: ["string", "null"]
+        size:
+          type: integer
+        folder:
+          type: ["string", "null"]
+        url:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    FileInput:
+      type: object
+      required: [name, type, size]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        mimeType:
+          type: ["string", "null"]
+        size:
+          type: integer
+        folder:
+          type: ["string", "null"]
+        url:
+          type: ["string", "null"]
+
+    StorageSummary:
+      type: object
+      required: [totalBytes, usedBytes, fileCount]
+      properties:
+        totalBytes:
+          type: integer
+        usedBytes:
+          type: integer
+        fileCount:
+          type: integer
+        byType:
+          type: array
+          items:
+            $ref: "#/components/schemas/StorageByType"
+
+    StorageByType:
+      type: object
+      required: [type, bytes, count]
+      properties:
+        type:
+          type: string
+        bytes:
+          type: integer
+        count:
+          type: integer
+
+    # ─── Task ────────────────────────────────────────────────────────────────
+
+    Task:
+      type: object
+      required: [id, userId, title, status, priority, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        assignedToId:
+          type: ["integer", "null"]
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [todo, in_progress, done]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        dueDate:
+          type: ["string", "null"]
+        isShared:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TaskInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: ["string", "null"]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        dueDate:
+          type: ["string", "null"]
+        assignedToId:
+          type: ["integer", "null"]
+        isShared:
+          type: boolean
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [todo, in_progress, done]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        dueDate:
+          type: ["string", "null"]
+        assignedToId:
+          type: ["integer", "null"]
+        isShared:
+          type: boolean
+
+    # ─── Notification ────────────────────────────────────────────────────────
+
+    Notification:
+      type: object
+      required: [id, userId, type, title, isRead, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        fromUserId:
+          type: ["integer", "null"]
+        fromUserName:
+          type: ["string", "null"]
+        type:
+          type: string
+          enum: [message, task, file_share, system, family_update]
+        title:
+          type: string
+        body:
+          type: ["string", "null"]
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+
+    # ─── AI ──────────────────────────────────────────────────────────────────
+
+    AiConfig:
+      type: object
+      required: [id, defaultModel, temperature, maxTokens, streamingEnabled]
+      properties:
+        id:
+          type: integer
+        defaultModel:
+          type: string
+        temperature:
+          type: number
+        maxTokens:
+          type: integer
+        streamingEnabled:
+          type: boolean
+        systemPrompt:
+          type: ["string", "null"]
+
+    AiConfigUpdate:
+      type: object
+      properties:
+        defaultModel:
+          type: string
+        temperature:
+          type: number
+        maxTokens:
+          type: integer
+        streamingEnabled:
+          type: boolean
+        systemPrompt:
+          type: ["string", "null"]
+
+    AiModel:
+      type: object
+      required: [id, name, provider, isEnabled, isDefault]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        provider:
+          type: string
+        isEnabled:
+          type: boolean
+        isDefault:
+          type: boolean
+        contextWindow:
+          type: ["integer", "null"]
+        description:
+          type: ["string", "null"]
+
+    AiKeys:
+      type: object
+      properties:
+        openaiKeySet:
+          type: boolean
+        anthropicKeySet:
+          type: boolean
+        geminiKeySet:
+          type: boolean
+        groqKeySet:
+          type: boolean
+        openrouterKeySet:
+          type: boolean
+
+    AiKeysUpdate:
+      type: object
+      properties:
+        openaiKey:
+          type: ["string", "null"]
+        anthropicKey:
+          type: ["string", "null"]
+        geminiKey:
+          type: ["string", "null"]
+        groqKey:
+          type: ["string", "null"]
+        openrouterKey:
+          type: ["string", "null"]
+
+    # ─── Dashboard ────────────────────────────────────────────────────────────
+
+    DashboardSummary:
+      type: object
+      required: [totalChats, totalMessages, totalFiles, totalTasks, unreadNotifications, tokensUsedToday]
+      properties:
+        totalChats:
+          type: integer
+        totalMessages:
+          type: integer
+        totalFiles:
+          type: integer
+        totalTasks:
+          type: integer
+        completedTasks:
+          type: integer
+        unreadNotifications:
+          type: integer
+        tokensUsedToday:
+          type: integer
+        activeModel:
+          type: string
+
+    UsageStat:
+      type: object
+      required: [date, tokens, messages]
+      properties:
+        date:
+          type: string
+        tokens:
+          type: integer
+        messages:
+          type: integer
+
+    FamilyMemberActivity:
+      type: object
+      required: [userId, name, chats, messages, filesUploaded, tokensUsed]
+      properties:
+        userId:
+          type: integer
+        name:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        chats:
+          type: integer
+        messages:
+          type: integer
+        filesUploaded:
+          type: integer
+        tokensUsed:
+          type: integer
+        lastActive:
+          type: ["string", "null"]
+
+    # ─── Admin ────────────────────────────────────────────────────────────────
+
+    AdminUserView:
+      type: object
+      required: [id, clerkId, email, name, role, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        clerkId:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [admin, member]
+        isActive:
+          type: boolean
+        totalChats:
+          type: integer
+        totalMessages:
+          type: integer
+        totalFiles:
+          type: integer
+        tokensUsed:
+          type: integer
+        createdAt:
+          type: string
+        lastActive:
+          type: ["string", "null"]
+
+    AdminUserInput:
+      type: object
+      required: [email, name]
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [admin, member]
+
+    AdminUserUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+          enum: [admin, member]
+        isActive:
+          type: boolean
+
+    SystemStats:
+      type: object
+      required: [totalUsers, activeUsers, totalChats, totalMessages, totalFiles, totalTokensUsed]
+      properties:
+        totalUsers:
+          type: integer
+        activeUsers:
+          type: integer
+        totalChats:
+          type: integer
+        totalMessages:
+          type: integer
+        totalFiles:
+          type: integer
+        totalTokensUsed:
+          type: integer
+        storageUsedBytes:
+          type: integer
+
+    AuditLog:
+      type: object
+      required: [id, userId, action, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userEmail:
+          type: ["string", "null"]
+        action:
+          type: string
+        entityType:
+          type: ["string", "null"]
+        entityId:
+          type: ["integer", "null"]
+        details:
+          type: ["string", "null"]
+        createdAt:
+          type: string

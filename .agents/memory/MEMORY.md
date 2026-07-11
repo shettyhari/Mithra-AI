@@ -1,0 +1,1 @@
+- [Mithra AI stack](mithra-ai-stack.md) — full-stack AI family OS; React+Vite frontend, Express API, Drizzle+PG, Clerk auth, multi-provider AI

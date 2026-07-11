@@ -1,8 +1,28 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
+import usersRouter from "./users";
+import chatsRouter from "./chats";
+import messagesRouter from "./messages";
+import filesRouter from "./files";
+import tasksRouter from "./tasks";
+import notificationsRouter from "./notifications";
+import aiRouter from "./ai";
+import dashboardRouter from "./dashboard";
+import adminRouter from "./admin";
+import searchRouter from "./search";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(usersRouter);
+router.use(chatsRouter);
+router.use(messagesRouter);
+router.use(filesRouter);
+router.use(tasksRouter);
+router.use(notificationsRouter);
+router.use(aiRouter);
+router.use(dashboardRouter);
+router.use(adminRouter);
+router.use(searchRouter);
 
 export default router;
