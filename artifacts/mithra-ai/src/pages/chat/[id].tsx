@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import VoiceChat from "@/components/VoiceChat";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -99,7 +100,7 @@ function MessageContent({ content, isDark }: { content: string; isDark: boolean 
             <code
               className={cn(
                 "px-1.5 py-0.5 rounded-md font-mono text-[0.85em]",
-                isDark ? "bg-white/10 text-purple-300" : "bg-primary/10 text-primary"
+                isDark ? "bg-muted/40 text-purple-300" : "bg-primary/10 text-primary"
               )}
               {...props}
             >
@@ -212,13 +213,13 @@ export default function ChatRoomPage() {
       {/* ── Header ─────────────────────────────────────────────── */}
       <header className={cn(
         "h-14 flex items-center justify-between px-4 border-b shrink-0 gap-3",
-        isDark ? "border-white/5 bg-background/50 backdrop-blur-xl" : "border-border bg-background/80 backdrop-blur-xl"
+        isDark ? "border-border/50 bg-background/50 backdrop-blur-xl" : "border-border bg-background/80 backdrop-blur-xl"
       )}>
         <div className="flex items-center gap-3 min-w-0">
           <Link href="/chat">
             <button className={cn(
               "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
-              isDark ? "hover:bg-white/10 text-muted-foreground" : "hover:bg-accent text-muted-foreground"
+              isDark ? "hover:bg-muted/40 text-muted-foreground" : "hover:bg-accent text-muted-foreground"
             )}>
               <ArrowLeft className="w-4 h-4" />
             </button>
@@ -239,7 +240,7 @@ export default function ChatRoomPage() {
               agentMode
                 ? "bg-primary/15 border-primary/30 text-primary"
                 : isDark
-                  ? "bg-white/5 border-white/10 text-muted-foreground hover:text-foreground"
+                  ? "bg-muted/30 border-border text-muted-foreground hover:text-foreground"
                   : "bg-muted border-border text-muted-foreground hover:text-foreground"
             )}
           >
@@ -254,7 +255,7 @@ export default function ChatRoomPage() {
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200",
                 isDark
-                  ? "bg-white/5 border-white/10 text-muted-foreground hover:text-foreground"
+                  ? "bg-muted/30 border-border text-muted-foreground hover:text-foreground"
                   : "bg-muted border-border text-muted-foreground hover:text-foreground"
               )}
             >
@@ -265,7 +266,7 @@ export default function ChatRoomPage() {
             {modelDropdownOpen && (
               <div className={cn(
                 "absolute right-0 top-full mt-1 w-56 rounded-xl border shadow-xl z-50 overflow-hidden",
-                isDark ? "bg-background border-white/10" : "bg-background border-border shadow-lg"
+                isDark ? "bg-background border-border" : "bg-background border-border shadow-lg"
               )}>
                 {models?.filter((m) => m.isEnabled).map((m) => (
                   <button
@@ -275,7 +276,7 @@ export default function ChatRoomPage() {
                       "w-full flex items-start gap-2.5 px-3 py-2.5 text-left text-sm transition-colors",
                       activeModel === m.id
                         ? "bg-primary/10 text-primary"
-                        : isDark ? "hover:bg-white/5 text-foreground" : "hover:bg-accent text-foreground"
+                        : isDark ? "hover:bg-muted/30 text-foreground" : "hover:bg-accent text-foreground"
                     )}
                   >
                     <BrainCircuit className="w-4 h-4 mt-0.5 shrink-0 text-purple-400" />
@@ -322,7 +323,7 @@ export default function ChatRoomPage() {
                   className={cn(
                     "flex items-center gap-2 p-3 rounded-xl border text-sm text-left transition-colors",
                     isDark
-                      ? "bg-white/[0.03] border-white/10 hover:bg-white/[0.06] text-muted-foreground hover:text-foreground"
+                      ? "bg-white/[0.03] border-border hover:bg-white/[0.06] text-muted-foreground hover:text-foreground"
                       : "bg-muted/50 border-border hover:bg-muted text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -344,12 +345,12 @@ export default function ChatRoomPage() {
                   <div className={cn(
                     "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-1 border",
                     isUser
-                      ? isDark ? "bg-white/10 border-white/20" : "bg-muted border-border"
+                      ? isDark ? "bg-muted/40 border-white/20" : "bg-muted border-border"
                       : "bg-gradient-to-br from-purple-500 to-cyan-600 border-transparent"
                   )}>
                     {isUser
                       ? <User className="w-3.5 h-3.5 text-foreground" />
-                      : <Sparkles className="w-3.5 h-3.5 text-white" />
+                      : <Sparkles className="w-3.5 h-3.5 text-foreground" />
                     }
                   </div>
 
@@ -371,7 +372,7 @@ export default function ChatRoomPage() {
                           ? "bg-primary/20 text-foreground rounded-tr-sm border border-primary/20"
                           : "bg-primary/10 text-foreground rounded-tr-sm border border-primary/20"
                         : isDark
-                          ? "bg-background border border-white/10 text-gray-200 rounded-tl-sm shadow-sm"
+                          ? "bg-background border border-border text-gray-200 rounded-tl-sm shadow-sm"
                           : "bg-card border border-border text-foreground rounded-tl-sm shadow-sm"
                     )}>
                       {isUser
@@ -425,11 +426,11 @@ export default function ChatRoomPage() {
             {sendMessage.isPending && (
               <div className="flex gap-3">
                 <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-cyan-600 flex items-center justify-center shrink-0 mt-1">
-                  <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
+                  <Sparkles className="w-3.5 h-3.5 text-foreground animate-pulse" />
                 </div>
                 <div className={cn(
                   "px-4 py-3 rounded-2xl rounded-tl-sm border flex items-center gap-2",
-                  isDark ? "bg-background border-white/10" : "bg-card border-border"
+                  isDark ? "bg-background border-border" : "bg-card border-border"
                 )}>
                   {agentMode && (
                     <span className="text-xs text-muted-foreground mr-1">Thinking</span>
@@ -454,14 +455,14 @@ export default function ChatRoomPage() {
       {/* ── Input ──────────────────────────────────────────────── */}
       <div className={cn(
         "px-4 py-4 shrink-0 border-t",
-        isDark ? "border-white/5 bg-background/80 backdrop-blur-xl" : "border-border bg-background"
+        isDark ? "border-border/50 bg-background/80 backdrop-blur-xl" : "border-border bg-background"
       )}>
         <div className="max-w-3xl mx-auto">
           <form onSubmit={handleSend} className="relative">
             <div className={cn(
               "flex flex-col rounded-2xl border transition-all duration-200",
               isDark
-                ? "bg-white/[0.03] border-white/10 focus-within:border-primary/40 focus-within:bg-white/[0.05]"
+                ? "bg-white/[0.03] border-border focus-within:border-primary/40 focus-within:bg-white/[0.05]"
                 : "bg-background border-border focus-within:border-primary/60 shadow-sm"
             )}>
               <textarea
@@ -476,13 +477,18 @@ export default function ChatRoomPage() {
                 rows={1}
               />
               <div className="flex items-center justify-between px-3 pb-2.5 pt-1">
-                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <div className="relative flex items-center gap-1.5">
                   {agentMode && (
-                    <span className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">
+                    <span className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20 text-[11px]">
                       <Bot className="w-3 h-3" />
                       Agent Mode
                     </span>
                   )}
+                  <VoiceChat
+                    onTranscript={(text) => { setContent(text); setTimeout(handleSend, 100); }}
+                    lastAiMessage={messages?.filter(m => m.role === "assistant").at(-1)?.content}
+                    disabled={sendMessage.isPending}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-muted-foreground/50 hidden sm:block">Shift+Enter for new line</span>

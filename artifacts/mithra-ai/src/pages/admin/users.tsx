@@ -29,7 +29,7 @@ export default function AdminUsersPage() {
     <div className="h-full flex flex-col space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
             <ShieldAlert className="w-8 h-8 text-red-500" />
             Command Center
           </h1>
@@ -37,15 +37,15 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      <div className="flex border-b border-white/10 mb-6">
-        <Link href="/admin" className="px-4 py-2 border-b-2 border-transparent text-muted-foreground hover:text-white transition-colors">Overview</Link>
-        <Link href="/admin/users" className="px-4 py-2 border-b-2 border-primary text-white font-medium">Users</Link>
+      <div className="flex border-b border-border mb-6">
+        <Link href="/admin" className="px-4 py-2 border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors">Overview</Link>
+        <Link href="/admin/users" className="px-4 py-2 border-b-2 border-primary text-foreground font-medium">Users</Link>
       </div>
 
-      <Card className="glass-card border-white/10 bg-background/50 flex-1 overflow-hidden flex flex-col">
+      <Card className="glass-card border-border bg-background/50 flex-1 overflow-hidden flex flex-col">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="text-xs text-muted-foreground uppercase bg-white/5 border-b border-white/10">
+            <thead className="text-xs text-muted-foreground uppercase bg-muted/30 border-b border-border">
               <tr>
                 <th className="px-6 py-4 font-medium">User</th>
                 <th className="px-6 py-4 font-medium">Role</th>
@@ -54,15 +54,15 @@ export default function AdminUsersPage() {
                 <th className="px-6 py-4 font-medium text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-border">
               {isLoading ? (
                 [1, 2, 3].map(i => (
                   <tr key={i}>
-                    <td className="px-6 py-4"><Skeleton className="h-8 w-40 bg-white/5" /></td>
-                    <td className="px-6 py-4"><Skeleton className="h-6 w-16 bg-white/5" /></td>
-                    <td className="px-6 py-4"><Skeleton className="h-6 w-16 bg-white/5" /></td>
-                    <td className="px-6 py-4"><Skeleton className="h-6 w-24 bg-white/5" /></td>
-                    <td className="px-6 py-4 text-right"><Skeleton className="h-8 w-8 ml-auto bg-white/5" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-8 w-40 bg-muted/30" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-6 w-16 bg-muted/30" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-6 w-16 bg-muted/30" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-6 w-24 bg-muted/30" /></td>
+                    <td className="px-6 py-4 text-right"><Skeleton className="h-8 w-8 ml-auto bg-muted/30" /></td>
                   </tr>
                 ))
               ) : (
@@ -73,10 +73,10 @@ export default function AdminUsersPage() {
                         <img 
                           src={user.avatarUrl || `https://ui-avatars.com/api/?name=${user.name}&background=random`} 
                           alt="" 
-                          className="w-8 h-8 rounded-full border border-white/10"
+                          className="w-8 h-8 rounded-full border border-border"
                         />
                         <div>
-                          <p className="font-medium text-white">{user.name}</p>
+                          <p className="font-medium text-foreground">{user.name}</p>
                           <p className="text-xs text-muted-foreground">{user.email}</p>
                         </div>
                       </div>
@@ -102,22 +102,22 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-xs text-muted-foreground space-y-1">
-                        <p><span className="text-white/70">{user.totalChats || 0}</span> chats</p>
-                        <p><span className="text-white/70">{(user.tokensUsed || 0).toLocaleString()}</span> tokens</p>
+                        <p><span className="text-foreground/70">{user.totalChats || 0}</span> chats</p>
+                        <p><span className="text-foreground/70">{(user.tokensUsed || 0).toLocaleString()}</span> tokens</p>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
                             <MoreVertical className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-xl border-white/10">
-                          <DropdownMenuItem onClick={() => handleToggleRole(user.id, user.role)} className="text-white hover:bg-white/10">
+                        <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-xl border-border">
+                          <DropdownMenuItem onClick={() => handleToggleRole(user.id, user.role)} className="text-foreground hover:bg-muted/40">
                             <Shield className="w-4 h-4 mr-2" /> Make {user.role === 'admin' ? 'Member' : 'Admin'}
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-white/10" />
+                          <DropdownMenuSeparator className="bg-muted/40" />
                           <DropdownMenuItem onClick={() => handleToggleStatus(user.id, user.isActive)} className={user.isActive ? "text-yellow-400 hover:text-yellow-300 hover:bg-yellow-400/10" : "text-green-400 hover:text-green-300 hover:bg-green-400/10"}>
                             {user.isActive ? <Ban className="w-4 h-4 mr-2" /> : <CheckCircle className="w-4 h-4 mr-2" />} 
                             {user.isActive ? "Suspend User" : "Activate User"}

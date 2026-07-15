@@ -56,7 +56,7 @@ export default function TasksPage() {
     <div className="h-full flex flex-col space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Action Items</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Action Items</h1>
           <p className="text-muted-foreground text-sm mt-1">Manage and track family tasks.</p>
         </div>
         
@@ -66,7 +66,7 @@ export default function TasksPage() {
               <Plus className="w-4 h-4" /> Add Task
             </Button>
           </DialogTrigger>
-          <DialogContent className="glass-card border-white/10 text-white sm:max-w-[425px]">
+          <DialogContent className="glass-card border-border text-foreground sm:max-w-[425px]">
             <form onSubmit={handleCreate}>
               <DialogHeader>
                 <DialogTitle>New Action Item</DialogTitle>
@@ -85,10 +85,10 @@ export default function TasksPage() {
                 <div className="grid gap-2">
                   <Label className="text-muted-foreground">Priority</Label>
                   <Select value={newTask.priority} onValueChange={(v: any) => setNewTask({...newTask, priority: v})}>
-                    <SelectTrigger className="bg-background/50 border-white/10">
+                    <SelectTrigger className="bg-background/50 border-border">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-background/95 border-white/10">
+                    <SelectContent className="bg-background/95 border-border">
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
@@ -111,23 +111,23 @@ export default function TasksPage() {
         {columns.map(col => {
           const columnTasks = tasks?.filter(t => t.status === col.id) || [];
           return (
-            <div key={col.id} className="flex-1 flex flex-col min-w-[280px] bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
-              <div className="p-4 border-b border-white/5 flex items-center justify-between bg-black/20">
+            <div key={col.id} className="flex-1 flex flex-col min-w-[280px] bg-white/[0.02] border border-border/50 rounded-2xl overflow-hidden">
+              <div className="p-4 border-b border-border/50 flex items-center justify-between bg-black/20">
                 <h3 className={`font-semibold text-sm ${col.color} uppercase tracking-wider`}>{col.title}</h3>
-                <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full text-white/70">{columnTasks.length}</span>
+                <span className="text-xs bg-muted/40 px-2 py-0.5 rounded-full text-foreground/70">{columnTasks.length}</span>
               </div>
               <div className="flex-1 overflow-y-auto p-3 space-y-3">
                 {isLoading ? (
-                  [1,2].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl bg-white/5" />)
+                  [1,2].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl bg-muted/30" />)
                 ) : columnTasks.length === 0 ? (
-                  <div className="h-20 flex items-center justify-center text-sm text-muted-foreground/50 border-2 border-dashed border-white/5 rounded-xl">
+                  <div className="h-20 flex items-center justify-center text-sm text-muted-foreground/50 border-2 border-dashed border-border/50 rounded-xl">
                     Drop items here
                   </div>
                 ) : (
                   columnTasks.map(task => (
                     <div key={task.id} className={`glass-card bg-background/60 border ${col.border} p-4 rounded-xl group hover:border-white/20 transition-colors relative`}>
                       <div className="flex justify-between items-start mb-2">
-                        <p className={`font-medium text-sm leading-snug ${col.id === 'done' ? 'text-muted-foreground line-through' : 'text-white'}`}>
+                        <p className={`font-medium text-sm leading-snug ${col.id === 'done' ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
                           {task.title}
                         </p>
                         <Button 
@@ -145,12 +145,12 @@ export default function TasksPage() {
                           <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${
                             task.priority === 'high' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
                             task.priority === 'medium' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
-                            'bg-white/5 text-muted-foreground border-white/10'
+                            'bg-muted/30 text-muted-foreground border-border'
                           }`}>
                             {task.priority}
                           </Badge>
                           {task.dueDate && (
-                            <Badge variant="outline" className="bg-white/5 text-muted-foreground border-white/10 text-[10px] h-5 px-1.5 flex items-center gap-1">
+                            <Badge variant="outline" className="bg-muted/30 text-muted-foreground border-border text-[10px] h-5 px-1.5 flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
                               {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric'})}
                             </Badge>
@@ -159,7 +159,7 @@ export default function TasksPage() {
                         
                         <div className="flex gap-1">
                           {col.id !== 'todo' && (
-                            <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-white" onClick={() => handleStatusChange(task.id, 'todo')}>
+                            <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={() => handleStatusChange(task.id, 'todo')}>
                               <Circle className="w-4 h-4" />
                             </Button>
                           )}

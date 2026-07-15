@@ -49,6 +49,9 @@ app.use(
   })),
 );
 
+// Healthcheck for deployment
+app.get("/api/healthz", (_req, res) => res.json({ status: "ok", ts: Date.now() }));
+
 app.use("/api", router);
 
 export default app;

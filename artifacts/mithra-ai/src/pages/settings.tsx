@@ -62,7 +62,7 @@ export default function SettingsPage() {
     <div className="h-full flex flex-col space-y-6 max-w-3xl mx-auto overflow-y-auto pb-20">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Settings</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Settings</h1>
           <p className="text-muted-foreground text-sm mt-1">Configure your personal Mithra experience.</p>
         </div>
         <Button onClick={handleSave} disabled={updateSettings.isPending} variant="premium" className="gap-2">
@@ -70,21 +70,21 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-      <Card className="glass-card border-white/10 bg-background/50">
+      <Card className="glass-card border-border bg-background/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg text-white">
+          <CardTitle className="flex items-center gap-2 text-lg text-foreground">
             <Palette className="w-5 h-5 text-purple-400" /> Appearance
           </CardTitle>
           <CardDescription>Customize how Mithra looks and feels.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <Label className="text-white">Theme Preference</Label>
+            <Label className="text-foreground">Theme Preference</Label>
             <Select value={formData.theme} onValueChange={v => setFormData({...formData, theme: v})}>
-              <SelectTrigger className="bg-white/5 border-white/10 w-full sm:w-64">
+              <SelectTrigger className="bg-muted/30 border-border w-full sm:w-64">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
-              <SelectContent className="bg-background/95 border-white/10">
+              <SelectContent className="bg-background/95 border-border">
                 <SelectItem value="dark">Dark Mode (Default)</SelectItem>
                 <SelectItem value="light">Light Mode</SelectItem>
                 <SelectItem value="system">System Default</SelectItem>
@@ -94,7 +94,7 @@ export default function SettingsPage() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-white">Cinematic Animations</Label>
+              <Label className="text-foreground">Cinematic Animations</Label>
               <p className="text-xs text-muted-foreground">Enable high-quality background and transition effects.</p>
             </div>
             <Switch 
@@ -106,18 +106,18 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="glass-card border-white/10 bg-background/50">
+      <Card className="glass-card border-border bg-background/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg text-white">
+          <CardTitle className="flex items-center gap-2 text-lg text-foreground">
             <BrainCircuit className="w-5 h-5 text-cyan-400" /> AI Directives
           </CardTitle>
           <CardDescription>Tell Mithra how to respond to you personally.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label className="text-white">Custom Instructions</Label>
+            <Label className="text-foreground">Custom Instructions</Label>
             <textarea 
-              className="w-full h-32 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+              className="w-full h-32 rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
               placeholder="E.g., I'm a software engineer, give technical answers. Keep responses concise. Never use emojis."
               value={formData.customInstructions}
               onChange={e => setFormData({...formData, customInstructions: e.target.value})}
@@ -126,16 +126,16 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="glass-card border-white/10 bg-background/50">
+      <Card className="glass-card border-border bg-background/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg text-white">
+          <CardTitle className="flex items-center gap-2 text-lg text-foreground">
             <Bell className="w-5 h-5 text-yellow-400" /> Notifications
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-white">System Notifications</Label>
+              <Label className="text-foreground">System Notifications</Label>
               <p className="text-xs text-muted-foreground">Receive alerts for tasks and shared files.</p>
             </div>
             <Switch 

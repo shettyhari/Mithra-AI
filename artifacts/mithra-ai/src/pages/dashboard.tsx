@@ -27,9 +27,9 @@ export default function DashboardPage() {
   return (
     <div className="h-full flex flex-col space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight text-white">Overview</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Overview</h1>
         {summary?.activeModel && (
-          <Badge variant="outline" className="border-white/10 bg-white/5 text-white/80 font-mono text-xs">
+          <Badge variant="outline" className="border-border bg-muted/30 text-foreground/80 font-mono text-xs">
             Model: {summary.activeModel}
           </Badge>
         )}
@@ -42,53 +42,53 @@ export default function DashboardPage() {
         animate="visible"
       >
         <motion.div variants={itemVariants}>
-          <Card className="glass-card border-white/10 bg-background/50 relative overflow-hidden group">
+          <Card className="glass-card border-border bg-background/50 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Chats</CardTitle>
               <MessageSquare className="w-4 h-4 text-purple-400" />
             </CardHeader>
             <CardContent>
-              {summaryLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-3xl font-bold text-white">{summary?.totalChats || 0}</div>}
+              {summaryLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-3xl font-bold text-foreground">{summary?.totalChats || 0}</div>}
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="glass-card border-white/10 bg-background/50 relative overflow-hidden group">
+          <Card className="glass-card border-border bg-background/50 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">Tasks</CardTitle>
               <CheckSquare className="w-4 h-4 text-cyan-400" />
             </CardHeader>
             <CardContent>
-              {summaryLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-3xl font-bold text-white">{summary?.completedTasks || 0} <span className="text-sm text-muted-foreground font-normal">/ {summary?.totalTasks || 0} done</span></div>}
+              {summaryLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-3xl font-bold text-foreground">{summary?.completedTasks || 0} <span className="text-sm text-muted-foreground font-normal">/ {summary?.totalTasks || 0} done</span></div>}
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="glass-card border-white/10 bg-background/50 relative overflow-hidden group">
+          <Card className="glass-card border-border bg-background/50 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">Files</CardTitle>
               <FolderOpen className="w-4 h-4 text-yellow-400" />
             </CardHeader>
             <CardContent>
-              {summaryLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-3xl font-bold text-white">{summary?.totalFiles || 0}</div>}
+              {summaryLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-3xl font-bold text-foreground">{summary?.totalFiles || 0}</div>}
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="glass-card border-white/10 bg-background/50 relative overflow-hidden group">
+          <Card className="glass-card border-border bg-background/50 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">Notifications</CardTitle>
               <Bell className="w-4 h-4 text-red-400" />
             </CardHeader>
             <CardContent>
-              {summaryLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-3xl font-bold text-white">{summary?.unreadNotifications || 0}</div>}
+              {summaryLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-3xl font-bold text-foreground">{summary?.unreadNotifications || 0}</div>}
             </CardContent>
           </Card>
         </motion.div>
@@ -96,9 +96,9 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-[300px]">
         {/* Recent Chats */}
-        <Card className="glass-card border-white/10 flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-white/5">
-            <CardTitle className="text-lg font-semibold text-white">Recent Intel</CardTitle>
+        <Card className="glass-card border-border flex flex-col">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/50">
+            <CardTitle className="text-lg font-semibold text-foreground">Recent Intel</CardTitle>
             <Link href="/chat" className="text-sm text-primary hover:text-primary/80 flex items-center">
               View all <ArrowRight className="w-3 h-3 ml-1" />
             </Link>
@@ -119,11 +119,11 @@ export default function DashboardPage() {
                 <p>No recent activity</p>
               </div>
             ) : (
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-border">
                 {chats.slice(0, 5).map(chat => (
                   <Link key={chat.id} href={`/chat/${chat.id}`} className="flex flex-col p-4 hover:bg-white/[0.02] transition-colors cursor-pointer group">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-white group-hover:text-primary transition-colors truncate">{chat.title}</span>
+                      <span className="font-medium text-foreground group-hover:text-primary transition-colors truncate">{chat.title}</span>
                       <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
                         {new Date(chat.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
@@ -139,9 +139,9 @@ export default function DashboardPage() {
         </Card>
 
         {/* Upcoming Tasks */}
-        <Card className="glass-card border-white/10 flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-white/5">
-            <CardTitle className="text-lg font-semibold text-white">Action Items</CardTitle>
+        <Card className="glass-card border-border flex flex-col">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/50">
+            <CardTitle className="text-lg font-semibold text-foreground">Action Items</CardTitle>
             <Link href="/tasks" className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center">
               Board <ArrowRight className="w-3 h-3 ml-1" />
             </Link>
@@ -162,12 +162,12 @@ export default function DashboardPage() {
                 <p>All clear</p>
               </div>
             ) : (
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-border">
                 {tasks.map(task => (
                   <div key={task.id} className="flex items-start p-4 hover:bg-white/[0.02] transition-colors">
                     <div className="mt-1 w-4 h-4 rounded border border-white/20 flex-shrink-0" />
                     <div className="ml-3 flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{task.title}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{task.title}</p>
                       <div className="flex items-center mt-1 gap-2">
                         {task.dueDate && (
                           <span className="text-xs text-muted-foreground flex items-center">
@@ -178,7 +178,7 @@ export default function DashboardPage() {
                         <Badge variant="outline" className={
                           task.priority === 'high' ? "border-red-500/30 text-red-400" :
                           task.priority === 'medium' ? "border-yellow-500/30 text-yellow-400" :
-                          "border-white/10 text-muted-foreground"
+                          "border-border text-muted-foreground"
                         }>
                           {task.priority}
                         </Badge>

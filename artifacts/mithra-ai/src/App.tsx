@@ -17,6 +17,7 @@ import NotificationsPage from "./pages/notifications";
 import SettingsPage from "./pages/settings";
 import AdminPage from "./pages/admin";
 import AdminUsersPage from "./pages/admin/users";
+import AdminLoginPage from "./pages/admin/login";
 import NotFound from "./pages/not-found";
 import AppLayout from "./components/layout/AppLayout";
 import { ThemeProvider } from "./lib/theme";
@@ -203,6 +204,7 @@ function ClerkProviderWithRoutes() {
             <Route path="/tasks" component={() => <ProtectedRoute component={TasksPage} />} />
             <Route path="/notifications" component={() => <ProtectedRoute component={NotificationsPage} />} />
             <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />
+            <Route path="/admin-login" component={AdminLoginPage} />
             <Route path="/admin" component={() => <ProtectedRoute component={AdminPage} adminOnly />} />
             <Route path="/admin/users" component={() => <ProtectedRoute component={AdminUsersPage} adminOnly />} />
             

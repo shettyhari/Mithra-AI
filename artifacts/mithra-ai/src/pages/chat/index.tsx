@@ -50,7 +50,7 @@ export default function ChatListPage() {
   return (
     <div className="h-full flex flex-col space-y-4 max-w-4xl mx-auto">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight text-white">Intelligence</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Intelligence</h1>
         <Button onClick={handleNewChat} variant="premium" className="gap-2" disabled={createChat.isPending}>
           <Plus className="w-4 h-4" /> New Session
         </Button>
@@ -60,7 +60,7 @@ export default function ChatListPage() {
         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input 
           placeholder="Search archives..." 
-          className="pl-9 bg-background/50 border-white/10 focus-visible:ring-purple-500"
+          className="pl-9 bg-background/50 border-border focus-visible:ring-purple-500"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -70,7 +70,7 @@ export default function ChatListPage() {
         {isLoading ? (
           <div className="space-y-2">
             {[1, 2, 3, 4].map(i => (
-              <Skeleton key={i} className="h-20 w-full rounded-xl bg-white/5" />
+              <Skeleton key={i} className="h-20 w-full rounded-xl bg-muted/30" />
             ))}
           </div>
         ) : chats?.length === 0 ? (
@@ -113,15 +113,15 @@ export default function ChatListPage() {
 function ChatCard({ chat, onClick, onPin, onDelete }: any) {
   return (
     <div 
-      className="glass-card bg-background/40 hover:bg-white/[0.04] border-white/5 p-4 rounded-xl flex items-center gap-4 cursor-pointer transition-colors group"
+      className="glass-card bg-background/40 hover:bg-white/[0.04] border-border/50 p-4 rounded-xl flex items-center gap-4 cursor-pointer transition-colors group"
       onClick={onClick}
     >
-      <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+      <div className="w-10 h-10 rounded-full bg-muted/30 border border-border flex items-center justify-center flex-shrink-0">
         <MessageSquare className="w-4 h-4 text-purple-400" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-start mb-1">
-          <h4 className="text-base font-medium text-white truncate">{chat.title}</h4>
+          <h4 className="text-base font-medium text-foreground truncate">{chat.title}</h4>
           <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
             {format(new Date(chat.updatedAt), "MMM d")}
           </span>
@@ -133,15 +133,15 @@ function ChatCard({ chat, onClick, onPin, onDelete }: any) {
       <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
               <MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40 bg-background/95 backdrop-blur-xl border-white/10">
-            <DropdownMenuItem onClick={onPin} className="text-white hover:bg-white/10">
+          <DropdownMenuContent align="end" className="w-40 bg-background/95 backdrop-blur-xl border-border">
+            <DropdownMenuItem onClick={onPin} className="text-foreground hover:bg-muted/40">
               <Pin className="w-4 h-4 mr-2" /> {chat.isPinned ? "Unpin" : "Pin"}
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuSeparator className="bg-muted/40" />
             <DropdownMenuItem onClick={onDelete} className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
               <Trash2 className="w-4 h-4 mr-2" /> Delete
             </DropdownMenuItem>

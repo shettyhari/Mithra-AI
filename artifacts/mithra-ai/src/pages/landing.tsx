@@ -35,13 +35,13 @@ export default function LandingPage() {
       <header className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-10">
         <div className="flex items-center gap-2">
           <img src="/logo.svg" alt="Mithra AI" className="w-8 h-8" />
-          <span className="font-semibold text-xl tracking-tight text-white">Mithra</span>
+          <span className="font-semibold text-xl tracking-tight text-foreground">Mithra</span>
         </div>
         <div className="flex gap-4">
-          <Link href="/sign-in" className="text-sm font-medium text-white/70 hover:text-white transition-colors py-2 px-4">
+          <Link href="/sign-in" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors py-2 px-4">
             Sign In
           </Link>
-          <Link href="/sign-up" className="hidden sm:inline-flex bg-white/10 hover:bg-white/20 text-white border border-white/10 px-4 py-2 rounded-md text-sm font-medium transition-colors">
+          <Link href="/sign-up" className="hidden sm:inline-flex bg-muted/40 hover:bg-white/20 text-foreground border border-border px-4 py-2 rounded-md text-sm font-medium transition-colors">
             Get Started
           </Link>
         </div>
@@ -60,7 +60,7 @@ export default function LandingPage() {
             <span>The future of family computing</span>
           </motion.div>
           
-          <motion.h1 variants={itemVariants} className="text-5xl sm:text-7xl font-bold tracking-tight text-white leading-[1.1]">
+          <motion.h1 variants={itemVariants} className="text-5xl sm:text-7xl font-bold tracking-tight text-foreground leading-[1.1]">
             Your family's <br/>
             <span className="text-gradient">private intelligence.</span>
           </motion.h1>
@@ -76,7 +76,7 @@ export default function LandingPage() {
               </Button>
             </Link>
             <Link href="/sign-in">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto h-12 px-8 text-base bg-white/5 border-white/10 text-white hover:bg-white/10">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto h-12 px-8 text-base bg-muted/30 border-border text-foreground hover:bg-muted/40">
                 Sign In
               </Button>
             </Link>
@@ -90,21 +90,21 @@ export default function LandingPage() {
           initial="hidden"
           animate="visible"
         >
-          <motion.div variants={itemVariants} className="glass-card p-6 rounded-2xl text-left border border-white/5 bg-white/[0.02]">
+          <motion.div variants={itemVariants} className="glass-card p-6 rounded-2xl text-left border border-border/50 bg-white/[0.02]">
             <Brain className="w-8 h-8 text-purple-400 mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Personal Models</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Personal Models</h3>
             <p className="text-muted-foreground text-sm">Choose between OpenAI, Anthropic, or local models. Each family member gets their own customized context.</p>
           </motion.div>
           
-          <motion.div variants={itemVariants} className="glass-card p-6 rounded-2xl text-left border border-white/5 bg-white/[0.02]">
+          <motion.div variants={itemVariants} className="glass-card p-6 rounded-2xl text-left border border-border/50 bg-white/[0.02]">
             <Lock className="w-8 h-8 text-cyan-400 mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Private by Design</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Private by Design</h3>
             <p className="text-muted-foreground text-sm">Your family data is isolated and encrypted. No corporate tracking, no ads, just your own private hub.</p>
           </motion.div>
           
-          <motion.div variants={itemVariants} className="glass-card p-6 rounded-2xl text-left border border-white/5 bg-white/[0.02]">
+          <motion.div variants={itemVariants} className="glass-card p-6 rounded-2xl text-left border border-border/50 bg-white/[0.02]">
             <Zap className="w-8 h-8 text-yellow-400 mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Lightning Fast</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Lightning Fast</h3>
             <p className="text-muted-foreground text-sm">Built with a cinematic, highly-responsive interface that feels instantaneous. Form meets function.</p>
           </motion.div>
         </motion.div>
