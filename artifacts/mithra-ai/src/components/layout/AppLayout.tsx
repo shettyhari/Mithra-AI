@@ -358,11 +358,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-900/10 blur-[120px] pointer-events-none" />
           </>
         )}
-        <div className="flex-1 overflow-y-auto pt-14 md:pt-0">
-          <div className="h-full p-4 md:p-6 lg:p-8">
+        {location.startsWith("/chat") ? (
+          <div className="flex-1 overflow-hidden flex flex-col pt-14 md:pt-0">
             {children}
           </div>
-        </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto pt-14 md:pt-0">
+            <div className="min-h-full p-4 md:p-6 lg:p-8">
+              {children}
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Global Search Modal */}

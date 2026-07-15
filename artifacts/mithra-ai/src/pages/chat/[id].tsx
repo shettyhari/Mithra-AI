@@ -458,7 +458,7 @@ export default function ChatRoomPage() {
 
   // ─── RENDER ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex h-full -m-4 md:-m-6 lg:-m-8 overflow-hidden">
+    <div className="flex h-full overflow-hidden">
 
       {/* ── Chat sidebar ──────────────────────────────────────────── */}
       <aside className={cn(
