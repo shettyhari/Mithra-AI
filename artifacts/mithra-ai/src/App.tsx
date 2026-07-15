@@ -18,6 +18,10 @@ import SettingsPage from "./pages/settings";
 import AdminPage from "./pages/admin";
 import AdminUsersPage from "./pages/admin/users";
 import AdminLoginPage from "./pages/admin/login";
+import PersonasPage from "./pages/personas";
+import FamilyPage from "./pages/family";
+import MemoriesPage from "./pages/memories";
+import SharedChatPage from "./pages/shared/[token]";
 import NotFound from "./pages/not-found";
 import AppLayout from "./components/layout/AppLayout";
 import { ThemeProvider } from "./lib/theme";
@@ -207,6 +211,10 @@ function ClerkProviderWithRoutes() {
             <Route path="/admin-login" component={AdminLoginPage} />
             <Route path="/admin" component={() => <ProtectedRoute component={AdminPage} adminOnly />} />
             <Route path="/admin/users" component={() => <ProtectedRoute component={AdminUsersPage} adminOnly />} />
+            <Route path="/personas" component={() => <ProtectedRoute component={PersonasPage} />} />
+            <Route path="/family" component={() => <ProtectedRoute component={FamilyPage} />} />
+            <Route path="/memories" component={() => <ProtectedRoute component={MemoriesPage} />} />
+            <Route path="/shared/:token" component={SharedChatPage} />
             
             <Route component={NotFound} />
           </Switch>

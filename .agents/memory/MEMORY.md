@@ -1,1 +1,2 @@
 - [Mithra AI stack](mithra-ai-stack.md) — full-stack AI family OS; React+Vite frontend, Express API, Drizzle+PG, Clerk auth, multi-provider AI
+- [Phase 2 patterns](phase2-patterns.md) — personas/memories/family/shared chat: schema, routes, injection pattern, zod dep gotcha

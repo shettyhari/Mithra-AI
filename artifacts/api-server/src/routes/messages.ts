@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq, and, asc } from "drizzle-orm";
 import { db } from "@workspace/db";
-import { messagesTable, chatsTable, aiConfigTable } from "@workspace/db";
+import { messagesTable, chatsTable, aiConfigTable, memoriesTable, personasTable, familyMembersTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { callAi, callAiStream } from "../lib/ai";
 import {
@@ -19,6 +19,57 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+// Build an enriched system prompt by layering persona + memories + family context
+// on top of any existing admin-configured system prompt.
+async function buildEnrichedSystemPrompt(
+  userId: number,
+  personaId: number | null | undefined,
+  baseSystemPrompt: string | null | undefined,
+): Promise<string | null> {
+  const parts: string[] = [];
+
+  // 1. Persona system prompt (overrides base if present)
+  if (personaId) {
+    const [persona] = await db.select().from(personasTable).where(eq(personasTable.id, personaId));
+    if (persona) {
+      parts.push(persona.systemPrompt);
+    }
+  } else if (baseSystemPrompt) {
+    parts.push(baseSystemPrompt);
+  }
+
+  // 2. Inject memories
+  const memories = await db.select().from(memoriesTable).where(eq(memoriesTable.userId, userId));
+  if (memories.length > 0) {
+    const grouped = memories.reduce<Record<string, string[]>>((acc, m) => {
+      acc[m.category] = acc[m.category] ?? [];
+      acc[m.category].push(m.content);
+      return acc;
+    }, {});
+    const memLines = Object.entries(grouped)
+      .map(([cat, items]) => `${cat.charAt(0).toUpperCase() + cat.slice(1)}s:\n${items.map(i => `- ${i}`).join("\n")}`)
+      .join("\n\n");
+    parts.push(`## What you know about this user\n${memLines}`);
+  }
+
+  // 3. Inject family context
+  const family = await db.select().from(familyMembersTable).where(eq(familyMembersTable.userId, userId));
+  if (family.length > 0) {
+    const famLines = family.map(m => {
+      const detail = [
+        m.relationship,
+        m.birthday ? `birthday: ${m.birthday}` : null,
+        m.notes ? m.notes : null,
+        m.preferences ? m.preferences : null,
+      ].filter(Boolean).join(", ");
+      return `- ${m.name} (${detail})`;
+    }).join("\n");
+    parts.push(`## User's family\n${famLines}`);
+  }
+
+  return parts.length > 0 ? parts.join("\n\n") : null;
+}
 
 function serializeMessage(msg: typeof messagesTable.$inferSelect) {
   return {
@@ -68,6 +119,8 @@ router.post("/chats/:chatId/messages", requireAuth, async (req, res): Promise<vo
   const agentMode = !!parsed.data.agentMode;
   const reasoningMode = !!parsed.data.reasoningMode;
   const imageUrl = parsed.data.imageUrl ?? null;
+  // personaId override — not in generated schema, read directly from raw body
+  const requestPersonaId = typeof req.body?.personaId === "number" ? req.body.personaId as number : null;
 
   const [chat] = await db.select().from(chatsTable)
     .where(and(eq(chatsTable.id, params.data.chatId), eq(chatsTable.userId, req.userId!)));
@@ -80,6 +133,9 @@ router.post("/chats/:chatId/messages", requireAuth, async (req, res): Promise<vo
   const [aiConfig] = await db.select().from(aiConfigTable).where(eq(aiConfigTable.userId, req.userId!));
   const defaultConfig = aiConfig ?? { defaultModel: "gpt-4o-mini", temperature: 0.7, maxTokens: 2048, systemPrompt: null };
   const modelId = parsed.data.model ?? chat.model ?? defaultConfig.defaultModel;
+
+  // Build enriched system prompt — per-request personaId overrides the chat's stored personaId
+  const enrichedSystemPrompt = await buildEnrichedSystemPrompt(req.userId!, requestPersonaId ?? chat.personaId, defaultConfig.systemPrompt);
 
   // Save user message
   const [userMsg] = await db.insert(messagesTable).values({
@@ -109,7 +165,7 @@ router.post("/chats/:chatId/messages", requireAuth, async (req, res): Promise<vo
       modelId,
       defaultConfig.temperature,
       defaultConfig.maxTokens,
-      defaultConfig.systemPrompt,
+      enrichedSystemPrompt,
       agentMode,
       req.userId!,
       reasoningMode,
@@ -157,6 +213,7 @@ router.post("/chats/:chatId/messages/stream", requireAuth, async (req, res): Pro
   const agentMode = !!parsed.data.agentMode;
   const reasoningMode = !!parsed.data.reasoningMode;
   const imageUrl = parsed.data.imageUrl ?? null;
+  const requestPersonaId = typeof req.body?.personaId === "number" ? req.body.personaId as number : null;
 
   const [chat] = await db.select().from(chatsTable)
     .where(and(eq(chatsTable.id, params.data.chatId), eq(chatsTable.userId, req.userId!)));
@@ -168,6 +225,9 @@ router.post("/chats/:chatId/messages/stream", requireAuth, async (req, res): Pro
   const [aiConfig] = await db.select().from(aiConfigTable).where(eq(aiConfigTable.userId, req.userId!));
   const defaultConfig = aiConfig ?? { defaultModel: "gpt-4o-mini", temperature: 0.7, maxTokens: 2048, systemPrompt: null };
   const modelId = parsed.data.model ?? chat.model ?? defaultConfig.defaultModel;
+
+  // Build enriched system prompt — per-request personaId overrides the chat's stored personaId
+  const enrichedSystemPrompt = await buildEnrichedSystemPrompt(req.userId!, requestPersonaId ?? chat.personaId, defaultConfig.systemPrompt);
 
   const [userMsg] = await db.insert(messagesTable).values({
     chatId: params.data.chatId,
@@ -196,7 +256,7 @@ router.post("/chats/:chatId/messages/stream", requireAuth, async (req, res): Pro
         .orderBy(asc(messagesTable.createdAt))
         .limit(20);
       const aiMessages = history.map(m => ({ role: m.role as "user" | "assistant" | "system", content: m.content, imageUrl: m.imageUrl ?? undefined }));
-      const aiResponse = await callAi(aiMessages, modelId, defaultConfig.temperature, defaultConfig.maxTokens, defaultConfig.systemPrompt, agentMode, req.userId!, reasoningMode);
+      const aiResponse = await callAi(aiMessages, modelId, defaultConfig.temperature, defaultConfig.maxTokens, enrichedSystemPrompt, agentMode, req.userId!, reasoningMode);
       send("delta", { content: aiResponse.content });
       const [assistantMsg] = await db.insert(messagesTable).values({
         chatId: params.data.chatId, role: "assistant", content: aiResponse.content, model: modelId, tokensUsed: aiResponse.tokensUsed,
@@ -219,7 +279,7 @@ router.post("/chats/:chatId/messages/stream", requireAuth, async (req, res): Pro
     const aiMessages = history.map(m => ({ role: m.role as "user" | "assistant" | "system", content: m.content, imageUrl: m.imageUrl ?? undefined }));
 
     const result = await callAiStream(
-      aiMessages, modelId, defaultConfig.temperature, defaultConfig.maxTokens, defaultConfig.systemPrompt, reasoningMode,
+      aiMessages, modelId, defaultConfig.temperature, defaultConfig.maxTokens, enrichedSystemPrompt, reasoningMode,
       (delta) => send("delta", { content: delta }),
     );
 

@@ -7,3 +7,6 @@ export * from "./tasks";
 export * from "./notifications";
 export * from "./aiConfig";
 export * from "./auditLogs";
+export * from "./personas";
+export * from "./memories";
+export * from "./familyMembers";

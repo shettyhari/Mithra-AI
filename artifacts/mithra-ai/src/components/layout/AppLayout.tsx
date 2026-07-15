@@ -18,6 +18,9 @@ import {
   X,
   Search,
   Zap,
+  Bot,
+  Users,
+  Brain,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGetMe, useGetUnreadNotificationCount } from "@workspace/api-client-react";
@@ -64,6 +67,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const navigation = [
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Personas", href: "/personas", icon: Bot },
+    { name: "Family", href: "/family", icon: Users },
+    { name: "Memory", href: "/memories", icon: Brain },
     { name: "Files", href: "/files", icon: FolderOpen },
     { name: "Tasks", href: "/tasks", icon: CheckSquare },
     { name: "Notifications", href: "/notifications", icon: Bell, badge: unreadCount > 0 ? unreadCount : null },

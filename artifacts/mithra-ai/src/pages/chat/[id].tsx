@@ -7,6 +7,7 @@ import {
   getGetChatQueryKey,
   getListMessagesQueryKey,
 } from "@workspace/api-client-react";
+import { useQuery, useMutation, useQueryClient as useRQClient } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { BASE_URL } from "@/lib/queryClient";
 import { useTheme } from "@/lib/theme";
@@ -14,6 +15,7 @@ import {
   ArrowLeft, Send, Sparkles, User, BrainCircuit, Loader2,
   Copy, RefreshCw, Trash2, ChevronDown, Zap, Globe, CheckSquare,
   Bell, BarChart3, Bot, Brain, Paperclip, X, Download, FileText, FileType,
+  Share2, Check, Cpu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -202,6 +204,13 @@ export default function ChatRoomPage() {
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const [personaDropdownOpen, setPersonaDropdownOpen] = useState(false);
+  const [selectedPersonaId, setSelectedPersonaId] = useState<number | null>(null);
+  const [shareToken, setShareToken] = useState<string | null>(null);
+  const [shareMenuOpen, setShareMenuOpen] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+  const [extractingMemories, setExtractingMemories] = useState(false);
+  const rqClient = useRQClient();
 
   // Streaming state — a synthetic in-flight assistant message rendered while
   // tokens are still arriving over SSE, replaced by the persisted message
@@ -222,6 +231,93 @@ export default function ChatRoomPage() {
   const editMessage = useEditMessage();
   const deleteMessage = useDeleteMessage();
   const regenerateMessage = useRegenerateMessage();
+
+  // Personas
+  const { data: personas = [] } = useQuery<Array<{ id: number; name: string; avatarEmoji: string; isDefault: boolean }>>({
+    queryKey: ["personas"],
+    queryFn: async () => {
+      const r = await fetch(`${BASE_URL}api/personas`, { credentials: "include" });
+      return r.ok ? r.json() : [];
+    },
+  });
+  const activePersona = personas.find(p => p.id === selectedPersonaId) ?? personas.find(p => p.isDefault) ?? null;
+
+  // Share helpers
+  const handleShare = async () => {
+    if (shareToken) {
+      setShareMenuOpen(o => !o);
+      return;
+    }
+    try {
+      const r = await fetch(`${BASE_URL}api/chats/${chatId}/share`, { method: "POST", credentials: "include" });
+      if (r.ok) {
+        const { shareToken: token } = await r.json() as { shareToken: string };
+        setShareToken(token);
+        setShareMenuOpen(true);
+      }
+    } catch {}
+  };
+  const handleCopyShareLink = () => {
+    const url = `${window.location.origin}${import.meta.env.BASE_URL}shared/${shareToken}`;
+    navigator.clipboard.writeText(url).then(() => { setShareCopied(true); setTimeout(() => setShareCopied(false), 2000); });
+  };
+  const handleRevokeShare = async () => {
+    await fetch(`${BASE_URL}api/chats/${chatId}/share`, { method: "DELETE", credentials: "include" });
+    setShareToken(null);
+    setShareMenuOpen(false);
+  };
+
+  // Memory extraction — asks the AI to pull key facts from the conversation
+  const handleExtractMemories = async () => {
+    if (!messages?.length || extractingMemories) return;
+    setExtractingMemories(true);
+    try {
+      const convo = messages.filter(m => m.role !== "system").slice(-20)
+        .map(m => `${m.role}: ${m.content.replace(/<think>[\s\S]*?<\/think>/g, "").trim()}`).join("\n");
+      const r = await fetch(`${BASE_URL}api/chats/${chatId}/messages/stream`, {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: `Based on this conversation, extract 3-5 memorable facts about the user (preferences, goals, personal details, relationships). Return ONLY a JSON array of objects like: [{"content":"...","category":"preference|fact|goal|relationship|general"}]. No explanation, just the JSON.\n\nConversation:\n${convo}`,
+          model: "gpt-4o-mini",
+        }),
+      });
+      if (!r.ok || !r.body) throw new Error("Failed");
+      const reader = r.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "", full = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const evts = buf.split("\n\n"); buf = evts.pop() ?? "";
+        for (const evt of evts) {
+          const dl = evt.split("\n").find(l => l.startsWith("data:"));
+          if (!dl) continue;
+          try {
+            const p = JSON.parse(dl.slice(5).trim()) as Record<string, unknown>;
+            if (typeof p.content === "string") full += p.content;
+          } catch {}
+        }
+      }
+      // Parse and save memories
+      const jsonMatch = /\[[\s\S]*\]/.exec(full);
+      if (jsonMatch) {
+        const items = JSON.parse(jsonMatch[0]) as Array<{ content: string; category: string }>;
+        await Promise.all(items.map(item =>
+          fetch(`${BASE_URL}api/memories`, {
+            method: "POST", credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: item.content, category: item.category ?? "general" }),
+          })
+        ));
+        rqClient.invalidateQueries({ queryKey: ["memories"] });
+        // Invalidate message list to remove the extraction response
+        queryClient.invalidateQueries({ queryKey: getListMessagesQueryKey(chatId) });
+      }
+    } catch {}
+    setExtractingMemories(false);
+  };
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -270,6 +366,7 @@ export default function ChatRoomPage() {
           agentMode,
           reasoningMode,
           imageUrl,
+          personaId: selectedPersonaId ?? undefined,
         }),
         signal: controller.signal,
       });
@@ -364,6 +461,52 @@ export default function ChatRoomPage() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {/* Share */}
+          <div className="relative">
+            <button
+              onClick={handleShare}
+              title="Share conversation"
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+                shareToken
+                  ? "text-primary"
+                  : isDark ? "hover:bg-muted/40 text-muted-foreground" : "hover:bg-accent text-muted-foreground"
+              )}
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
+            {shareMenuOpen && (
+              <div className={cn(
+                "absolute right-0 top-full mt-1 w-64 rounded-xl border shadow-xl z-50 p-3 space-y-2",
+                "bg-background border-border"
+              )}>
+                <p className="text-xs font-medium text-foreground">Share link</p>
+                <div className="flex gap-2">
+                  <input readOnly value={`${window.location.origin}${import.meta.env.BASE_URL}shared/${shareToken}`}
+                    className="flex-1 text-xs bg-muted rounded-lg px-2 py-1.5 text-muted-foreground truncate border border-border" />
+                  <button onClick={handleCopyShareLink}
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-1">
+                    {shareCopied ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy</>}
+                  </button>
+                </div>
+                <button onClick={handleRevokeShare} className="text-xs text-destructive hover:underline">Revoke link</button>
+              </div>
+            )}
+          </div>
+
+          {/* Extract memories */}
+          <button
+            onClick={handleExtractMemories}
+            disabled={!messages?.length || extractingMemories}
+            title="Extract key facts into memory"
+            className={cn(
+              "w-8 h-8 rounded-full flex items-center justify-center transition-colors disabled:opacity-40",
+              isDark ? "hover:bg-muted/40 text-muted-foreground" : "hover:bg-accent text-muted-foreground"
+            )}
+          >
+            {extractingMemories ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+          </button>
+
           {/* Export */}
           <div className="relative">
             <button
@@ -394,6 +537,61 @@ export default function ChatRoomPage() {
               </div>
             )}
           </div>
+
+          {/* Persona selector */}
+          {personas.length > 0 && (
+            <div className="relative">
+              <button
+                onClick={() => setPersonaDropdownOpen(o => !o)}
+                title="Switch AI persona"
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200",
+                  activePersona && selectedPersonaId
+                    ? "bg-cyan-400/15 border-cyan-400/30 text-cyan-400"
+                    : isDark
+                      ? "bg-muted/30 border-border text-muted-foreground hover:text-foreground"
+                      : "bg-muted border-border text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span className="text-sm leading-none">{activePersona?.avatarEmoji ?? "🤖"}</span>
+                <span className="max-w-[60px] truncate hidden sm:block">{activePersona?.name ?? "Default"}</span>
+                <ChevronDown className="w-3 h-3" />
+              </button>
+              {personaDropdownOpen && (
+                <div className={cn(
+                  "absolute right-0 top-full mt-1 w-52 rounded-xl border shadow-xl z-50 overflow-hidden",
+                  isDark ? "bg-background border-border" : "bg-background border-border shadow-lg"
+                )}>
+                  <button
+                    onClick={() => { setSelectedPersonaId(null); setPersonaDropdownOpen(false); }}
+                    className={cn(
+                      "w-full flex items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors",
+                      !selectedPersonaId ? "bg-primary/10 text-primary" : isDark ? "hover:bg-muted/30 text-foreground" : "hover:bg-accent text-foreground"
+                    )}
+                  >
+                    <Cpu className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs font-medium">Default</span>
+                  </button>
+                  {personas.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => { setSelectedPersonaId(p.id); setPersonaDropdownOpen(false); }}
+                      className={cn(
+                        "w-full flex items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors",
+                        selectedPersonaId === p.id ? "bg-primary/10 text-primary" : isDark ? "hover:bg-muted/30 text-foreground" : "hover:bg-accent text-foreground"
+                      )}
+                    >
+                      <span className="text-base leading-none">{p.avatarEmoji}</span>
+                      <div>
+                        <p className="font-medium text-xs">{p.name}</p>
+                        {p.isDefault && <p className="text-[10px] text-muted-foreground">Default</p>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Reasoning mode toggle */}
           <button
@@ -475,7 +673,7 @@ export default function ChatRoomPage() {
       {/* ── Messages ───────────────────────────────────────────── */}
       <div
         className="flex-1 overflow-y-auto px-4 py-6 space-y-6"
-        onClick={() => { setModelDropdownOpen(false); setExportMenuOpen(false); }}
+        onClick={() => { setModelDropdownOpen(false); setExportMenuOpen(false); setPersonaDropdownOpen(false); setShareMenuOpen(false); }}
       >
         {msgsLoading ? (
           <div className="space-y-8 max-w-3xl mx-auto">

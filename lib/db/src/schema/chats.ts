@@ -11,6 +11,8 @@ export const chatsTable = pgTable("chats", {
   folder: text("folder"),
   isPinned: boolean("is_pinned").notNull().default(false),
   isArchived: boolean("is_archived").notNull().default(false),
+  personaId: integer("persona_id"), // nullable FK to personas, set after personas table is created
+  shareToken: text("share_token"), // nullable; set when user shares a chat
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

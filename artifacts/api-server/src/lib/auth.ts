@@ -72,6 +72,11 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     }
   }
 
+  if (!user) {
+    res.status(500).json({ error: "Failed to provision user" });
+    return;
+  }
+
   // Self-heal: users provisioned before the real-name fetch was added are
   // stuck with the literal "User" placeholder / unknown.com email — refresh
   // them from Clerk once so the UI shows their actual signed-in identity.

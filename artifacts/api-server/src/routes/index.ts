@@ -10,6 +10,10 @@ import aiRouter from "./ai";
 import dashboardRouter from "./dashboard";
 import adminRouter from "./admin";
 import searchRouter from "./search";
+import personasRouter from "./personas";
+import memoriesRouter from "./memories";
+import familyRouter from "./family";
+import sharedRouter from "./shared";
 
 const router: IRouter = Router();
 
@@ -24,5 +28,9 @@ router.use(aiRouter);
 router.use(dashboardRouter);
 router.use(adminRouter);
 router.use(searchRouter);
+router.use(personasRouter);
+router.use(memoriesRouter);
+router.use(familyRouter);
+router.use(sharedRouter);
 
 export default router;
