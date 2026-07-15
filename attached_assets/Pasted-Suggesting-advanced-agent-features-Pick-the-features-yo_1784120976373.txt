@@ -1,0 +1,57 @@
+Suggesting advanced agent features
+Pick the features you want added to Mithra AI
+Which features should I build?
+🎙️ Full Voice OS Control — say 'open chat', 'create task called...', 'navigate to files', 'search for...' and the AI navigates and operates the entire app hands-free, ⚡ Streaming AI Responses — real-time token-by-token output instead of waiting for the full reply (feels 10× faster), 🧠 Persistent AI Memory — AI remembers facts across all conversations (birthdays, preferences, goals, context) and uses them automatically, 👨‍👩‍👧 Family Member Profiles — each person gets their own AI persona, tone, and age-appropriate settings (kid-safe mode for children), 📄 File Intelligence — upload a PDF/image/doc and ask AI questions about it; AI reads, summarises, and extracts data, 💬 Shared Family Chats — group conversations where multiple members + AI collaborate in one thread, with @mentions, 📊 Daily AI Digest — automated morning briefing: tasks due today, unread messages, upcoming events, weather — delivered via voice or notification, 🖼️ Vision / Screenshot Analysis — paste or upload any image into chat; AI describes, analyses, or extracts text from it, ⚙️ Automations & Triggers — 'when a task is overdue, notify me', 'every Monday send a family summary' — no-code rule builder, 📤 Export Conversations — download any chat as PDF, Markdown, or Word document with one click, 📱 PWA / Install as App — install Mithra on your phone home screen; works offline, sends push notifications, 🔍 AI Reasoning Mode — toggle 'think step-by-step' in any chat; AI shows its chain-of-thought before answering, 🎭 Custom AI Personas — name your assistant, pick a personality, set a custom avatar and system prompt per family member, 🎨 AI Canvas — ask the AI to draw diagrams, mind maps, or flowcharts that render directly in the chat
+
+Worked for 36 seconds
+
+Checkpoint saved
+14 minutes ago
+Systematic feature handling
+
+Systematic feature handling
+All 14 — let me start building immediately. This is a large amount of work so I'll use subagents to build backend and frontend in parallel. First let me read the current schema and key files.
+
+
+Show less
+
+Exploring schema and key files
+
+Subagent: Read these files in /home/runner/workspace and report their FULL contents: 1. lib/db/src/schema/ - list all files and read index.ts, userSettings.ts, messages.ts, files.ts 2. artifacts/api-server/src/lib/ai.ts - full content 3. artifacts/api-server/src/routes/messages.ts - full content 4. lib/api-zod/src/generated/api.ts - first 100 lines to see schema pattern 5. artifacts/mithra-ai/src/pages/settings.tsx - full content 6. artifacts/mithra-ai/src/lib/theme.tsx - full content Report all content verbatim.
+
+Listed files
+Database schema planning
+
+Database schema planning
+
+Opened ai.ts
+
+Opened messages.ts
+
+Opened chats.ts
+Planning and executing features
+
+Planning and executing features
+Loaded skill delegation
+Dispatching subagents
+
+Dispatching subagents
+Good. I have full context. Dispatching 2 parallel subagents now — one for all backend work, one for frontend pages — while I build the chat upgrades, PWA, and mermaid directly.
+
+
+Show less
+
+Dispatching backend subagent (DB + routes + streaming + AI)
+
+Dispatching frontend subagent (memories, automations, persona, VoiceOS, digest pages)
+Escaping backticks
+
+Escaping backticks
+The backticks in template strings caused parse errors. Fixing that and batching everything in parallel — subagents + package installs + direct file writes all at once.
+
+
+Show less
+
+Dispatching backend subagent
+
+Subagent stopped: You are building backend features for Mithra AI at /home/runner/workspace. STEP 1 - Create lib/db/src/schema/memories.ts with this content: import { pgTable, text, serial, timestamp, integer, boolean } from 'drizzle-orm/pg-core'; import { usersTable } from './users'; export const memoriesTable = pgTable('memories', { id: serial('id').primaryKey(), userId: integer('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }), content: text('content').notNull(), category: text('category').notNull().default('general'), source: text('source').notNull().default('auto'), isActive: boolean('is_active').notNull().default(true), createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()), }); STEP 2 - Create lib/db/src/schema/automations.ts with this content: import { pgTable, text, serial, timestamp, integer, boolean, jsonb } from 'drizzle-orm/pg-core'; import { usersTable } from './users'; export const automationsTable = pgTable('automations', { id: serial('id').primaryKey(), userId: integer('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }), name: text('name').notNull(), description: text('description'), trigger: text('trigger').notNull(), triggerConfig: jsonb('trigger_config'), action: ...
