@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@clerk/react";
-import { Mic, MicOff, Volume2, VolumeX, Radio, X, Zap, Loader2, ChevronDown } from "lucide-react";
+import { Mic, MicOff, Volume2, VolumeX, X, Zap, Loader2, ChevronDown, StopCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/theme";
 
@@ -40,11 +40,9 @@ export default function VoiceAgent() {
   const { getToken } = useAuth();
 
   const [state, setState] = useState<AgentState>("idle");
-  const [wakeEnabled, setWakeEnabled] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(true);
   const [transcript, setTranscript] = useState("");
   const [lastResponse, setLastResponse] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [minimized, setMinimized] = useState(false);
 
@@ -56,8 +54,8 @@ export default function VoiceAgent() {
   const wakeRestartRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
-  const wakeEnabledRef = useRef(wakeEnabled);
-  wakeEnabledRef.current = wakeEnabled;
+  const ttsEnabledRef = useRef(ttsEnabled);
+  ttsEnabledRef.current = ttsEnabled;
 
   const stopAll = useCallback(() => {
     activeRecRef.current?.stop();
@@ -82,29 +80,29 @@ export default function VoiceAgent() {
 
       if (!r.ok) throw new Error("API error");
       const action = await r.json();
-
       const spoken = action.spoken || "Done!";
       setLastResponse(spoken);
 
       if (action.navigateTo) {
         navigate(action.navigateTo);
-        // Dispatch a refresh event so pages can react
         window.dispatchEvent(new CustomEvent("mithra-voice-action", { detail: action }));
       }
 
-      if (ttsEnabled) {
+      if (ttsEnabledRef.current) {
         setState("speaking");
-        speak(spoken, () => setState("idle"));
+        speak(spoken, () => {
+          setState("idle");
+        });
       } else {
         setState("idle");
       }
     } catch {
-      const errText = "Sorry, I had trouble with that. Please try again.";
+      const errText = "Sorry, I had trouble with that.";
       setLastResponse(errText);
-      if (ttsEnabled) { setState("speaking"); speak(errText, () => setState("idle")); }
-      else setState("error");
+      if (ttsEnabledRef.current) { setState("speaking"); speak(errText, () => setState("idle")); }
+      else setState("idle");
     }
-  }, [getToken, navigate, ttsEnabled]);
+  }, [getToken, navigate]);
 
   // ── Active listening ──────────────────────────────────────────
   const startListening = useCallback(() => {
@@ -135,7 +133,6 @@ export default function VoiceAgent() {
 
     rec.onerror = (e: SpeechRecognitionErrorEvent) => {
       if (e.error === "no-speech") { setState("idle"); return; }
-      setErrorMsg("Mic error: " + e.error);
       setState("error");
     };
 
@@ -148,10 +145,12 @@ export default function VoiceAgent() {
     setExpanded(true);
   }, [SpeechRecognitionClass, processCommand, stopAll]);
 
-  // ── Wake word loop ────────────────────────────────────────────
+  // ── Wake word loop — always active ───────────────────────────
   const startWakeLoop = useCallback(() => {
-    if (!SpeechRecognitionClass || !wakeEnabledRef.current) return;
-    if (wakeRecRef.current) return; // already running
+    if (!SpeechRecognitionClass) return;
+    if (wakeRecRef.current) return;
+    // Don't start wake loop if already in an active state
+    if (["listening", "processing", "speaking"].includes(stateRef.current)) return;
 
     const rec = new SpeechRecognitionClass();
     rec.continuous = true;
@@ -164,11 +163,8 @@ export default function VoiceAgent() {
         if (WAKE_VARIANTS.some(w => t.includes(w))) {
           rec.stop();
           wakeRecRef.current = null;
-          setState("listening");
-          if (ttsEnabled) {
-            speak("Yes?", () => {
-              setTimeout(() => startListening(), 300);
-            });
+          if (ttsEnabledRef.current) {
+            speak("Yes?", () => setTimeout(() => startListening(), 200));
           } else {
             setTimeout(() => startListening(), 300);
           }
@@ -179,44 +175,43 @@ export default function VoiceAgent() {
 
     rec.onerror = () => {
       wakeRecRef.current = null;
-      if (wakeEnabledRef.current) {
-        wakeRestartRef.current = setTimeout(startWakeLoop, 1500);
-      }
+      wakeRestartRef.current = setTimeout(startWakeLoop, 1500);
     };
 
     rec.onend = () => {
       if (wakeRecRef.current === rec) wakeRecRef.current = null;
-      if (wakeEnabledRef.current && stateRef.current === "wake") {
-        wakeRestartRef.current = setTimeout(startWakeLoop, 300);
+      if (stateRef.current === "wake" || stateRef.current === "idle") {
+        wakeRestartRef.current = setTimeout(startWakeLoop, 400);
       }
     };
 
     wakeRecRef.current = rec;
     setState("wake");
     rec.start();
-  }, [SpeechRecognitionClass, startListening, ttsEnabled]);
+  }, [SpeechRecognitionClass, startListening]);
 
-  // Toggle wake word
+  // Start wake loop on mount, always-on
   useEffect(() => {
-    if (wakeEnabled) {
-      startWakeLoop();
-    } else {
+    if (!SpeechRecognitionClass) return;
+    const t = setTimeout(startWakeLoop, 500);
+    return () => {
+      clearTimeout(t);
       if (wakeRestartRef.current) clearTimeout(wakeRestartRef.current);
       wakeRecRef.current?.stop();
       wakeRecRef.current = null;
-      if (stateRef.current === "wake") setState("idle");
-    }
-    return () => {
-      if (wakeRestartRef.current) clearTimeout(wakeRestartRef.current);
+      activeRecRef.current?.stop();
+      activeRecRef.current = null;
+      window.speechSynthesis?.cancel();
     };
-  }, [wakeEnabled]);
+  }, []);
 
-  // After speaking, restart wake loop
+  // After returning to idle, restart wake loop
   useEffect(() => {
-    if (state === "idle" && wakeEnabled && !wakeRecRef.current) {
-      setTimeout(startWakeLoop, 500);
+    if (state === "idle" && SpeechRecognitionClass && !wakeRecRef.current) {
+      const t = setTimeout(startWakeLoop, 600);
+      return () => clearTimeout(t);
     }
-  }, [state, wakeEnabled]);
+  }, [state]);
 
   if (!SpeechRecognitionClass) return null;
 
@@ -226,13 +221,12 @@ export default function VoiceAgent() {
   const isSpeaking = state === "speaking";
   const isActive = isListening || isProcessing || isSpeaking;
 
-  // ── UI ─────────────────────────────────────────────────────────
   return (
     <div className={cn(
       "fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2 transition-all duration-300",
-      minimized ? "opacity-60 hover:opacity-100" : ""
+      minimized ? "opacity-50 hover:opacity-100" : ""
     )}>
-      {/* Response card */}
+      {/* Response / transcript card */}
       {(lastResponse || isListening || isProcessing) && expanded && !minimized && (
         <div className={cn(
           "w-72 rounded-2xl border shadow-2xl p-4 text-sm animate-in slide-in-from-bottom-2 duration-200",
@@ -240,36 +234,27 @@ export default function VoiceAgent() {
             ? "bg-background/95 border-white/10 backdrop-blur-xl"
             : "bg-white border-border shadow-xl"
         )}>
-          {/* Header */}
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center shrink-0">
               <Zap className="w-3 h-3 text-white" />
             </div>
-            <span className="text-xs font-semibold text-foreground">Mithra Voice</span>
-            <div className="ml-auto flex gap-1">
-              <button onClick={() => setExpanded(false)}
-                className="text-muted-foreground hover:text-foreground transition-colors">
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <span className="text-xs font-semibold text-foreground">Mithra</span>
+            <button onClick={() => setExpanded(false)} className="ml-auto text-muted-foreground hover:text-foreground transition-colors">
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
           </div>
 
-          {/* Transcript */}
           {transcript && (
-            <div className={cn(
-              "mb-2 px-3 py-2 rounded-xl text-xs",
-              isDark ? "bg-white/5" : "bg-muted/50"
-            )}>
+            <div className={cn("mb-2.5 px-3 py-2 rounded-xl text-xs", isDark ? "bg-white/5" : "bg-muted/50")}>
               <p className="text-muted-foreground italic">"{transcript}"</p>
             </div>
           )}
 
-          {/* State indicator + response */}
           {isListening && (
             <div className="flex items-center gap-2 text-primary">
               <span className="flex gap-0.5">
                 {[0, 1, 2].map(i => (
-                  <span key={i} className="w-1 h-3 rounded-full bg-primary animate-bounce"
+                  <span key={i} className="w-1 h-4 rounded-full bg-primary animate-bounce"
                     style={{ animationDelay: `${i * 0.12}s` }} />
                 ))}
               </span>
@@ -284,71 +269,48 @@ export default function VoiceAgent() {
             </div>
           )}
 
-          {isSpeaking && lastResponse && (
+          {(isSpeaking || (!isActive && lastResponse)) && (
             <div className="flex items-start gap-2">
-              <Volume2 className="w-3.5 h-3.5 text-cyan-500 mt-0.5 shrink-0" />
+              {isSpeaking && <Volume2 className="w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0 animate-pulse" />}
               <p className="text-xs text-foreground leading-relaxed">{lastResponse}</p>
             </div>
           )}
-
-          {!isActive && lastResponse && (
-            <p className="text-xs text-foreground leading-relaxed">{lastResponse}</p>
-          )}
         </div>
       )}
 
-      {/* Wake listening indicator */}
+      {/* Wake indicator pill */}
       {isWake && !minimized && (
         <div className={cn(
-          "px-3 py-1.5 rounded-full text-xs font-medium border animate-pulse",
+          "px-3 py-1 rounded-full text-[11px] font-medium border animate-pulse pointer-events-none",
           isDark
-            ? "bg-purple-500/15 border-purple-500/30 text-purple-400"
+            ? "bg-purple-500/10 border-purple-500/20 text-purple-400"
             : "bg-purple-50 border-purple-200 text-purple-600"
         )}>
-          Listening for "Hey Mithra"…
+          Say "Hey Mithra"…
         </div>
       )}
 
-      {/* Main floating button group */}
+      {/* Controls row */}
       <div className="flex items-center gap-2">
         {/* TTS toggle */}
         {!minimized && (
           <button
-            onClick={() => { setTtsEnabled(e => !e); if (isSpeaking) window.speechSynthesis?.cancel(); }}
-            title={ttsEnabled ? "Mute responses" : "Unmute responses"}
+            onClick={() => {
+              setTtsEnabled(e => !e);
+              if (isSpeaking) window.speechSynthesis?.cancel();
+            }}
+            title={ttsEnabled ? "Mute AI voice" : "Unmute AI voice"}
             className={cn(
-              "w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg border",
+              "w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 shadow-md border",
               ttsEnabled
                 ? isDark
-                  ? "bg-cyan-500/20 border-cyan-500/30 text-cyan-400"
+                  ? "bg-cyan-500/15 border-cyan-500/25 text-cyan-400"
                   : "bg-cyan-50 border-cyan-200 text-cyan-600"
                 : isDark
-                  ? "bg-background border-white/10 text-muted-foreground"
-                  : "bg-white border-border text-muted-foreground"
+                  ? "bg-background/80 border-white/10 text-muted-foreground hover:text-foreground"
+                  : "bg-white border-border text-muted-foreground hover:text-foreground"
             )}>
             {ttsEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-          </button>
-        )}
-
-        {/* Wake word toggle */}
-        {!minimized && (
-          <button
-            onClick={() => setWakeEnabled(e => !e)}
-            title={wakeEnabled ? 'Disable "Hey Mithra"' : 'Enable "Hey Mithra" wake word'}
-            className={cn(
-              "w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg border relative",
-              wakeEnabled
-                ? isDark
-                  ? "bg-purple-500/20 border-purple-500/30 text-purple-400"
-                  : "bg-purple-50 border-purple-200 text-purple-600"
-                : isDark
-                  ? "bg-background border-white/10 text-muted-foreground"
-                  : "bg-white border-border text-muted-foreground"
-            )}>
-            <Radio className="w-4 h-4" />
-            {isWake && (
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse" />
-            )}
           </button>
         )}
 
@@ -356,12 +318,12 @@ export default function VoiceAgent() {
         <button
           onClick={() => {
             if (minimized) { setMinimized(false); return; }
-            if (isListening) { stopAll(); setState("idle"); return; }
-            if (isProcessing || isSpeaking) { stopAll(); setState("idle"); return; }
+            if (isListening || isProcessing) { stopAll(); setState("idle"); return; }
+            if (isSpeaking) { window.speechSynthesis?.cancel(); setState("idle"); return; }
             setExpanded(true);
             startListening();
           }}
-          title={isListening ? "Stop" : "Talk to Mithra"}
+          title={isListening ? "Stop listening" : "Talk to Mithra"}
           className={cn(
             "relative w-14 h-14 rounded-full flex items-center justify-center transition-all duration-200 shadow-xl",
             isListening
@@ -373,51 +335,42 @@ export default function VoiceAgent() {
                   : isWake
                     ? "bg-gradient-to-br from-purple-500 to-cyan-500 text-white"
                     : isDark
-                      ? "bg-gradient-to-br from-purple-600 to-cyan-600 text-white hover:scale-105"
-                      : "bg-gradient-to-br from-purple-500 to-cyan-500 text-white hover:scale-105"
+                      ? "bg-gradient-to-br from-purple-600 to-cyan-600 text-white hover:scale-105 hover:shadow-purple-500/25"
+                      : "bg-gradient-to-br from-purple-500 to-cyan-500 text-white hover:scale-105 hover:shadow-lg"
           )}>
           {/* Pulse rings */}
           {(isListening || isWake) && (
             <>
               <span className={cn(
-                "absolute inset-0 rounded-full animate-ping opacity-30",
-                isListening ? "bg-red-500" : "bg-purple-500"
+                "absolute inset-0 rounded-full animate-ping opacity-25",
+                isListening ? "bg-red-400" : "bg-purple-400"
               )} />
               <span className={cn(
-                "absolute -inset-2 rounded-full animate-ping opacity-15",
-                isListening ? "bg-red-500" : "bg-purple-500"
+                "absolute -inset-2 rounded-full animate-ping opacity-10",
+                isListening ? "bg-red-400" : "bg-purple-400"
               )} style={{ animationDelay: "0.3s" }} />
             </>
           )}
-          {isListening ? (
-            <MicOff className="w-5 h-5 relative z-10" />
-          ) : isProcessing ? (
-            <Loader2 className="w-5 h-5 relative z-10 animate-spin" />
-          ) : isSpeaking ? (
-            <Volume2 className="w-5 h-5 relative z-10" />
-          ) : (
-            <Mic className="w-5 h-5 relative z-10" />
-          )}
+          <span className="relative z-10">
+            {isListening ? <MicOff className="w-5 h-5" /> :
+             isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> :
+             isSpeaking ? <StopCircle className="w-5 h-5" /> :
+             <Mic className="w-5 h-5" />}
+          </span>
         </button>
 
-        {/* Minimize toggle */}
-        {!minimized && isActive && (
-          <button onClick={() => setMinimized(true)}
+        {/* Dismiss card */}
+        {!minimized && (lastResponse || isActive) && (
+          <button
+            onClick={() => { stopAll(); setState("idle"); setLastResponse(""); setTranscript(""); setExpanded(false); }}
             className={cn(
-              "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 shadow-md border text-muted-foreground hover:text-foreground",
-              isDark ? "bg-background border-white/10" : "bg-white border-border"
+              "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 shadow border text-muted-foreground hover:text-foreground",
+              isDark ? "bg-background/80 border-white/10" : "bg-white border-border"
             )}>
             <X className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
-
-      {/* Keyboard shortcut hint */}
-      {!minimized && !isActive && !isWake && (
-        <p className="text-[10px] text-muted-foreground text-center opacity-70">
-          Press mic or say "Hey Mithra"
-        </p>
-      )}
     </div>
   );
 }
