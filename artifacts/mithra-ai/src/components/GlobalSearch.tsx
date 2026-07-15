@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
+import { useAuth } from "@clerk/react";
 import { Search, MessageSquare, FileText, CheckSquare, Hash, Sparkles, Loader2, X, ArrowRight, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BASE_URL } from "@/lib/queryClient";
@@ -47,6 +48,7 @@ export default function GlobalSearch({ open, onClose }: { open: boolean; onClose
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [, setLocation] = useLocation();
+  const { getToken } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -85,9 +87,13 @@ export default function GlobalSearch({ open, onClose }: { open: boolean; onClose
     }
     setLoading(true);
     try {
+      const tok = await getToken();
       const resp = await fetch(`${BASE_URL}api/search`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(tok ? { Authorization: `Bearer ${tok}` } : {}),
+        },
         credentials: "include",
         body: JSON.stringify({ query: q, aiAnswer: true }),
       });
