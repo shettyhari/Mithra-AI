@@ -23,6 +23,7 @@ import budgetRouter from "./budget";
 import journalRouter from "./journal";
 import goalsRouter from "./goals";
 import notesRouter from "./notes";
+import voiceRouter from "./voice";
 
 const router: IRouter = Router();
 
@@ -50,5 +51,6 @@ router.use("/budget", budgetRouter);
 router.use("/journal", journalRouter);
 router.use("/goals", goalsRouter);
 router.use("/notes", notesRouter);
+router.use("/voice", voiceRouter);
 
 export default router;
