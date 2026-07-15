@@ -250,7 +250,13 @@ export async function callAi(
         ? "https://openrouter.ai/api/v1"
         : "https://api.openai.com/v1";
 
-    const key = apiKey || process.env.OPENAI_API_KEY;
+    // Fall back to Replit's managed AI Integrations proxy for OpenAI when no
+    // admin-configured key exists, so chat works out of the box without
+    // requiring the user to bring their own API key.
+    const useManagedOpenAi = provider === "openai" && !apiKey && !process.env.OPENAI_API_KEY
+      && !!process.env.AI_INTEGRATIONS_OPENAI_BASE_URL && !!process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+    const effectiveBaseURL = useManagedOpenAi ? process.env.AI_INTEGRATIONS_OPENAI_BASE_URL! : baseURL;
+    const key = useManagedOpenAi ? process.env.AI_INTEGRATIONS_OPENAI_API_KEY! : (apiKey || process.env.OPENAI_API_KEY);
     if (!key) {
       return {
         content: "No API key configured for this provider. Please ask your admin to set up AI keys in the admin panel.",
@@ -272,7 +278,7 @@ export async function callAi(
       body.tool_choice = "auto";
     }
 
-    const response = await fetch(`${baseURL}/chat/completions`, {
+    const response = await fetch(`${effectiveBaseURL}/chat/completions`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -327,7 +333,7 @@ export async function callAi(
         }
 
         // Get next response
-        const nextResponse = await fetch(`${baseURL}/chat/completions`, {
+        const nextResponse = await fetch(`${effectiveBaseURL}/chat/completions`, {
           method: "POST",
           headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -476,14 +482,17 @@ export async function callAiStream(
       : provider === "openrouter"
         ? "https://openrouter.ai/api/v1"
         : "https://api.openai.com/v1";
-    const key = apiKey || process.env.OPENAI_API_KEY;
+    const useManagedOpenAi = provider === "openai" && !apiKey && !process.env.OPENAI_API_KEY
+      && !!process.env.AI_INTEGRATIONS_OPENAI_BASE_URL && !!process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+    const effectiveBaseURL = useManagedOpenAi ? process.env.AI_INTEGRATIONS_OPENAI_BASE_URL! : baseURL;
+    const key = useManagedOpenAi ? process.env.AI_INTEGRATIONS_OPENAI_API_KEY! : (apiKey || process.env.OPENAI_API_KEY);
     if (!key) {
       const msg = "No API key configured for this provider. Please ask your admin to set up AI keys in the admin panel.";
       onDelta(msg);
       return { content: msg, tokensUsed: 0 };
     }
 
-    const response = await fetch(`${baseURL}/chat/completions`, {
+    const response = await fetch(`${effectiveBaseURL}/chat/completions`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({

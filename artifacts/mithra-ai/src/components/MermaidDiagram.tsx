@@ -26,7 +26,12 @@ export default function MermaidDiagram({ chart }: { chart: string }) {
           startOnLoad: false,
           theme: isDark ? "dark" : "default",
           securityLevel: "strict",
-          fontFamily: "inherit",
+          fontFamily: "ui-sans-serif, system-ui, sans-serif",
+          flowchart: { htmlLabels: false },
+          // Mermaid renders a graphical "bomb" error diagram inline by default
+          // on parse failure instead of rejecting. We want to show our own
+          // themed error state, so force it to throw instead.
+          suppressErrorRendering: true,
         });
         const { svg } = await mermaid.render(`mermaid-${uid}`, chart);
         if (!cancelled && containerRef.current) {
