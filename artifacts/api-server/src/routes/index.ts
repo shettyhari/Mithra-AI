@@ -18,6 +18,11 @@ import eventsRouter from "./events";
 import habitsRouter from "./habits";
 import automationsRouter from "./automations";
 import insightsRouter from "./insights";
+import shoppingRouter from "./shopping";
+import budgetRouter from "./budget";
+import journalRouter from "./journal";
+import goalsRouter from "./goals";
+import notesRouter from "./notes";
 
 const router: IRouter = Router();
 
@@ -36,9 +41,14 @@ router.use(personasRouter);
 router.use(memoriesRouter);
 router.use(familyRouter);
 router.use(sharedRouter);
-router.use("/api/events", eventsRouter);
-router.use("/api/habits", habitsRouter);
-router.use("/api/automations", automationsRouter);
-router.use("/api/insights", insightsRouter);
+router.use("/events", eventsRouter);
+router.use("/habits", habitsRouter);
+router.use("/automations", automationsRouter);
+router.use("/insights", insightsRouter);
+router.use("/shopping", shoppingRouter);
+router.use("/budget", budgetRouter);
+router.use("/journal", journalRouter);
+router.use("/goals", goalsRouter);
+router.use("/notes", notesRouter);
 
 export default router;

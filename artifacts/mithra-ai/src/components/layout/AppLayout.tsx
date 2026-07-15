@@ -24,6 +24,11 @@ import {
   Calendar,
   Target,
   BarChart3,
+  ShoppingCart,
+  DollarSign,
+  BookOpen,
+  Flag,
+  StickyNote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGetMe, useGetUnreadNotificationCount } from "@workspace/api-client-react";
@@ -73,6 +78,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { name: "Insights", href: "/insights", icon: BarChart3 },
     { name: "Calendar", href: "/calendar", icon: Calendar },
     { name: "Habits", href: "/habits", icon: Target },
+    { name: "Goals", href: "/goals", icon: Flag },
+    { name: "Journal", href: "/journal", icon: BookOpen },
+    { name: "Notes", href: "/notes", icon: StickyNote },
+    { name: "Shopping", href: "/shopping", icon: ShoppingCart },
+    { name: "Budget", href: "/budget", icon: DollarSign },
     { name: "Automations", href: "/automations", icon: Zap },
     { name: "Personas", href: "/personas", icon: Bot },
     { name: "Family", href: "/family", icon: Users },

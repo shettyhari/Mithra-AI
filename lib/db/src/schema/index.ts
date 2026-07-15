@@ -14,3 +14,8 @@ export * from "./events";
 export * from "./habits";
 export * from "./automations";
 export * from "./insights";
+export * from "./shopping";
+export * from "./budget";
+export * from "./journal";
+export * from "./goals";
+export * from "./notes";

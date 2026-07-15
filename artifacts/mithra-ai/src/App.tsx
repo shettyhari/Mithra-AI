@@ -28,6 +28,11 @@ const CalendarPage     = lazy(() => import("./pages/calendar"));
 const HabitsPage       = lazy(() => import("./pages/habits"));
 const InsightsPage     = lazy(() => import("./pages/insights"));
 const AutomationsPage  = lazy(() => import("./pages/automations"));
+const ShoppingPage     = lazy(() => import("./pages/shopping"));
+const BudgetPage       = lazy(() => import("./pages/budget"));
+const JournalPage      = lazy(() => import("./pages/journal"));
+const GoalsPage        = lazy(() => import("./pages/goals"));
+const NotesPage        = lazy(() => import("./pages/notes"));
 const SharedChatPage   = lazy(() => import("./pages/shared/[token]"));
 const NotFound         = lazy(() => import("./pages/not-found"));
 
@@ -242,6 +247,11 @@ function ClerkProviderWithRoutes() {
             <Route path="/habits" component={() => <ProtectedRoute component={HabitsPage} />} />
             <Route path="/insights" component={() => <ProtectedRoute component={InsightsPage} />} />
             <Route path="/automations" component={() => <ProtectedRoute component={AutomationsPage} />} />
+            <Route path="/shopping" component={() => <ProtectedRoute component={ShoppingPage} />} />
+            <Route path="/budget" component={() => <ProtectedRoute component={BudgetPage} />} />
+            <Route path="/journal" component={() => <ProtectedRoute component={JournalPage} />} />
+            <Route path="/goals" component={() => <ProtectedRoute component={GoalsPage} />} />
+            <Route path="/notes" component={() => <ProtectedRoute component={NotesPage} />} />
             <Route path="/shared/:token" component={SharedChatPage} />
             
             <Route component={NotFound} />
