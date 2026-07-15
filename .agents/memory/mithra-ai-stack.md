@@ -7,6 +7,7 @@ description: Architecture decisions, key patterns, and known quirks for the Mith
 - Frontend: `artifacts/mithra-ai` — React + Vite, Tailwind, shadcn/ui, Framer Motion, Recharts
 - Backend: `artifacts/api-server` — Express, Drizzle ORM, PostgreSQL
 - Auth: Clerk (Replit-managed). Keys in CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, VITE_CLERK_PUBLISHABLE_KEY
+- On fresh import/clone, Clerk keys and workflows are gone even though the code already has full Clerk wiring — just run `setupClerkWhitelabelAuth()` to reprovision, then `pnpm install` + push DB schema; don't re-do the code integration.
 - AI: Multi-provider (OpenAI, Anthropic, Gemini, Groq) via direct HTTP calls; keys stored in `ai_keys` table (base64 "encrypted")
 
 ## DB schema

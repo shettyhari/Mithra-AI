@@ -1,44 +1,43 @@
-# [Project name]
+# Mithra AI
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A premium, private AI operating system for families — each member gets a personal AI chat with configurable providers, plus shared tasks, files, and notifications.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- Workflows are already configured and run automatically in the Replit preview:
+  - `artifacts/api-server: API Server` — Express API (port 8080, mounted at `/api`)
+  - `artifacts/mithra-ai: web` — React/Vite frontend (port 19705, mounted at `/`)
+  - `artifacts/mockup-sandbox: Component Preview Server` — design/canvas preview
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` (Postgres, already provisioned), `CLERK_SECRET_KEY` / `CLERK_PUBLISHABLE_KEY` / `VITE_CLERK_PUBLISHABLE_KEY` (Replit-managed Clerk, already provisioned)
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Frontend: `artifacts/mithra-ai` — React + Vite, Tailwind, shadcn/ui, Framer Motion, Recharts
+- API: `artifacts/api-server` — Express 5
+- DB: PostgreSQL + Drizzle ORM (`lib/db`)
+- Auth: Clerk (Replit-managed)
+- AI: multi-provider (OpenAI, Anthropic, Gemini, Groq) via direct HTTP calls; keys stored per-user in the `ai_keys` table
+- Validation: Zod, `drizzle-zod`
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
-
-## Architecture decisions
-
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- `artifacts/mithra-ai` — frontend app (pages, components, Clerk wiring)
+- `artifacts/api-server` — Express API, routes, middlewares
+- `lib/db` — Drizzle schema and DB client (`@workspace/db`)
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
-
-## User preferences
-
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Family members sign in via Clerk and get their own AI chat, with per-user model/provider config
+- Shared/family features: tasks, file uploads, notifications, global search, admin panel
+- "Agent mode" in chat lets the assistant call tools (create task, web search, reminders, plans) via OpenAI function calling
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Full monorepo `pnpm run typecheck` has some pre-existing type errors in the frontend (see follow-up task) — dev server and app run fine despite these.
 
 ## Pointers
 
