@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, boolean, integer, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, boolean, integer, date, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -15,7 +15,10 @@ export const tasksTable = pgTable("tasks", {
   isShared: boolean("is_shared").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
-});
+}, (t) => [
+  index("tasks_user_id_idx").on(t.userId),
+  index("tasks_status_idx").on(t.userId, t.status),
+]);
 
 export const insertTaskSchema = createInsertSchema(tasksTable).omit({
   id: true, createdAt: true, updatedAt: true,

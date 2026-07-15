@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@clerk/react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BASE_URL } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -95,14 +96,20 @@ function PersonaForm({ persona, onSave, onCancel }: {
 export default function PersonasPage() {
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { getToken } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<Persona | null>(null);
   const [deleting, setDeleting] = useState<Persona | null>(null);
 
+  const authHeaders = async (extra?: Record<string, string>) => {
+    const tok = await getToken();
+    return { ...(tok ? { Authorization: `Bearer ${tok}` } : {}), ...extra };
+  };
+
   const { data: personas = [], isLoading } = useQuery<Persona[]>({
     queryKey: ["personas"],
     queryFn: async () => {
-      const res = await fetch(`${BASE_URL}api/personas`, { credentials: "include" });
+      const res = await fetch(`${BASE_URL}api/personas`, { credentials: "include", headers: await authHeaders() });
       if (!res.ok) throw new Error("Failed to load personas");
       return res.json();
     },
@@ -112,7 +119,8 @@ export default function PersonasPage() {
     mutationFn: async (data: Partial<Persona>) => {
       const res = await fetch(`${BASE_URL}api/personas`, {
         method: "POST", credentials: "include",
-        headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+        headers: await authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Failed to create");
       return res.json();
@@ -125,7 +133,8 @@ export default function PersonasPage() {
     mutationFn: async ({ id, data }: { id: number; data: Partial<Persona> }) => {
       const res = await fetch(`${BASE_URL}api/personas/${id}`, {
         method: "PUT", credentials: "include",
-        headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+        headers: await authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Failed to update");
       return res.json();
@@ -136,7 +145,7 @@ export default function PersonasPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`${BASE_URL}api/personas/${id}`, { method: "DELETE", credentials: "include" });
+      const res = await fetch(`${BASE_URL}api/personas/${id}`, { method: "DELETE", credentials: "include", headers: await authHeaders() });
       if (!res.ok) throw new Error("Failed to delete");
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["personas"] }); setDeleting(null); toast({ title: "Persona deleted" }); },

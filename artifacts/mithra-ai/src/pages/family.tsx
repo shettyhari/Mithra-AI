@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/react";
 import { BASE_URL } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -126,14 +127,20 @@ function MemberForm({ member, onSave, onCancel }: {
 export default function FamilyPage() {
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { getToken } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<FamilyMember | null>(null);
   const [deleting, setDeleting] = useState<FamilyMember | null>(null);
 
+  const authHeaders = async (extra?: Record<string, string>) => {
+    const tok = await getToken();
+    return { ...(tok ? { Authorization: `Bearer ${tok}` } : {}), ...extra };
+  };
+
   const { data: members = [], isLoading } = useQuery<FamilyMember[]>({
     queryKey: ["family"],
     queryFn: async () => {
-      const res = await fetch(`${BASE_URL}api/family`, { credentials: "include" });
+      const res = await fetch(`${BASE_URL}api/family`, { credentials: "include", headers: await authHeaders() });
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
@@ -143,7 +150,8 @@ export default function FamilyPage() {
     mutationFn: async (data: Partial<FamilyMember>) => {
       const res = await fetch(`${BASE_URL}api/family`, {
         method: "POST", credentials: "include",
-        headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+        headers: await authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Failed");
       return res.json();
@@ -156,7 +164,8 @@ export default function FamilyPage() {
     mutationFn: async ({ id, data }: { id: number; data: Partial<FamilyMember> }) => {
       const res = await fetch(`${BASE_URL}api/family/${id}`, {
         method: "PUT", credentials: "include",
-        headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+        headers: await authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Failed");
       return res.json();
@@ -167,7 +176,7 @@ export default function FamilyPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`${BASE_URL}api/family/${id}`, { method: "DELETE", credentials: "include" });
+      const res = await fetch(`${BASE_URL}api/family/${id}`, { method: "DELETE", credentials: "include", headers: await authHeaders() });
       if (!res.ok) throw new Error("Failed");
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["family"] }); setDeleting(null); toast({ title: "Member removed" }); },

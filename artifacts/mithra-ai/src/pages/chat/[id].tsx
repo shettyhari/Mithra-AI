@@ -238,7 +238,11 @@ export default function ChatRoomPage() {
   const { data: personas = [] } = useQuery<Array<{ id: number; name: string; avatarEmoji: string; isDefault: boolean }>>({
     queryKey: ["personas"],
     queryFn: async () => {
-      const r = await fetch(`${BASE_URL}api/personas`, { credentials: "include" });
+      const tok = await getToken();
+      const r = await fetch(`${BASE_URL}api/personas`, {
+        credentials: "include",
+        headers: tok ? { Authorization: `Bearer ${tok}` } : {},
+      });
       return r.ok ? r.json() : [];
     },
   });

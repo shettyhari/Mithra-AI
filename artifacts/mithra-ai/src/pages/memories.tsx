@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@clerk/react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BASE_URL } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,16 +51,22 @@ const CATEGORY_LABELS: Record<MemoryCategory, string> = {
 export default function MemoriesPage() {
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { getToken } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
   const [deleteAll, setDeleteAll] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [newContent, setNewContent] = useState("");
   const [newCategory, setNewCategory] = useState<MemoryCategory>("general");
 
+  const authHeaders = async (extra?: Record<string, string>) => {
+    const tok = await getToken();
+    return { ...(tok ? { Authorization: `Bearer ${tok}` } : {}), ...extra };
+  };
+
   const { data: memories = [], isLoading } = useQuery<Memory[]>({
     queryKey: ["memories"],
     queryFn: async () => {
-      const res = await fetch(`${BASE_URL}api/memories`, { credentials: "include" });
+      const res = await fetch(`${BASE_URL}api/memories`, { credentials: "include", headers: await authHeaders() });
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
@@ -69,7 +76,8 @@ export default function MemoriesPage() {
     mutationFn: async (data: { content: string; category: MemoryCategory }) => {
       const res = await fetch(`${BASE_URL}api/memories`, {
         method: "POST", credentials: "include",
-        headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+        headers: await authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Failed");
       return res.json();
@@ -84,7 +92,7 @@ export default function MemoriesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`${BASE_URL}api/memories/${id}`, { method: "DELETE", credentials: "include" });
+      const res = await fetch(`${BASE_URL}api/memories/${id}`, { method: "DELETE", credentials: "include", headers: await authHeaders() });
       if (!res.ok) throw new Error("Failed");
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["memories"] }); toast({ title: "Memory deleted" }); },
@@ -96,7 +104,8 @@ export default function MemoriesPage() {
       const ids = memories.map(m => m.id);
       const res = await fetch(`${BASE_URL}api/memories`, {
         method: "DELETE", credentials: "include",
-        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }),
+        headers: await authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ ids }),
       });
       if (!res.ok) throw new Error("Failed");
     },
