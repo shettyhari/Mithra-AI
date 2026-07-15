@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -11,7 +11,9 @@ export const memoriesTable = pgTable("memories", {
   content: text("content").notNull(),
   category: text("category").notNull().default("general"), // general | preference | fact | goal | relationship
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  index("memories_user_id_idx").on(t.userId),
+]);
 
 export const insertMemorySchema = createInsertSchema(memoriesTable).omit({
   id: true, createdAt: true,

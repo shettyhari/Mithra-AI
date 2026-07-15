@@ -63,6 +63,20 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, 'dist/public'),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('mermaid')) return 'vendor-mermaid';
+            if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts';
+            if (id.includes('jspdf') || id.includes('docx') || id.includes('html2canvas')) return 'vendor-export';
+            if (id.includes('@clerk')) return 'vendor-clerk';
+            if (id.includes('react-dom') || id.includes('react/')) return 'vendor-react';
+            return 'vendor';
+          }
+        },
+      },
+    },
   },
   server: {
     port,

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import { ClerkProvider, SignIn, SignUp, Show, useClerk, useUser } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
@@ -8,22 +8,29 @@ import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import LandingPage from "./pages/landing";
-import DashboardPage from "./pages/dashboard";
-import ChatListPage from "./pages/chat";
-import ChatRoomPage from "./pages/chat/[id]";
-import FilesPage from "./pages/files";
-import TasksPage from "./pages/tasks";
-import NotificationsPage from "./pages/notifications";
-import SettingsPage from "./pages/settings";
-import AdminPage from "./pages/admin";
-import AdminUsersPage from "./pages/admin/users";
-import AdminLoginPage from "./pages/admin/login";
-import PersonasPage from "./pages/personas";
-import FamilyPage from "./pages/family";
-import MemoriesPage from "./pages/memories";
-import SharedChatPage from "./pages/shared/[token]";
-import NotFound from "./pages/not-found";
 import AppLayout from "./components/layout/AppLayout";
+
+const DashboardPage    = lazy(() => import("./pages/dashboard"));
+const ChatListPage     = lazy(() => import("./pages/chat"));
+const ChatRoomPage     = lazy(() => import("./pages/chat/[id]"));
+const FilesPage        = lazy(() => import("./pages/files"));
+const TasksPage        = lazy(() => import("./pages/tasks"));
+const NotificationsPage = lazy(() => import("./pages/notifications"));
+const SettingsPage     = lazy(() => import("./pages/settings"));
+const AdminPage        = lazy(() => import("./pages/admin"));
+const AdminUsersPage   = lazy(() => import("./pages/admin/users"));
+const AdminLoginPage   = lazy(() => import("./pages/admin/login"));
+const PersonasPage     = lazy(() => import("./pages/personas"));
+const FamilyPage       = lazy(() => import("./pages/family"));
+const MemoriesPage     = lazy(() => import("./pages/memories"));
+const SharedChatPage   = lazy(() => import("./pages/shared/[token]"));
+const NotFound         = lazy(() => import("./pages/not-found"));
+
+const PageSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+  </div>
+);
 import { ThemeProvider } from "./lib/theme";
 
 const clerkPubKey = publishableKeyFromHost(
@@ -196,6 +203,7 @@ function ClerkProviderWithRoutes() {
       <QueryClientProvider client={queryClient}>
         <ClerkQueryClientCacheInvalidator />
         <TooltipProvider>
+          <Suspense fallback={<PageSpinner />}>
           <Switch>
             <Route path="/" component={HomeRedirect} />
             <Route path="/sign-in/*?" component={SignInPage} />
@@ -218,6 +226,7 @@ function ClerkProviderWithRoutes() {
             
             <Route component={NotFound} />
           </Switch>
+          </Suspense>
           <Toaster />
         </TooltipProvider>
       </QueryClientProvider>
