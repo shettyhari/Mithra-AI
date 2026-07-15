@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, Link } from "wouter";
+import { useAuth } from "@clerk/react";
 import {
   useGetChat,
   useListMessages,
@@ -7,7 +8,7 @@ import {
   getGetChatQueryKey,
   getListMessagesQueryKey,
 } from "@workspace/api-client-react";
-import { useQuery, useMutation, useQueryClient as useRQClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient as useRQClient } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { BASE_URL } from "@/lib/queryClient";
 import { useTheme } from "@/lib/theme";
@@ -211,6 +212,7 @@ export default function ChatRoomPage() {
   const [shareCopied, setShareCopied] = useState(false);
   const [extractingMemories, setExtractingMemories] = useState(false);
   const rqClient = useRQClient();
+  const { getToken } = useAuth();
 
   // Streaming state — a synthetic in-flight assistant message rendered while
   // tokens are still arriving over SSE, replaced by the persisted message
@@ -249,7 +251,11 @@ export default function ChatRoomPage() {
       return;
     }
     try {
-      const r = await fetch(`${BASE_URL}api/chats/${chatId}/share`, { method: "POST", credentials: "include" });
+      const tok = await getToken();
+      const r = await fetch(`${BASE_URL}api/chats/${chatId}/share`, {
+        method: "POST", credentials: "include",
+        headers: tok ? { Authorization: `Bearer ${tok}` } : {},
+      });
       if (r.ok) {
         const { shareToken: token } = await r.json() as { shareToken: string };
         setShareToken(token);
@@ -262,7 +268,11 @@ export default function ChatRoomPage() {
     navigator.clipboard.writeText(url).then(() => { setShareCopied(true); setTimeout(() => setShareCopied(false), 2000); });
   };
   const handleRevokeShare = async () => {
-    await fetch(`${BASE_URL}api/chats/${chatId}/share`, { method: "DELETE", credentials: "include" });
+    const tok = await getToken();
+    await fetch(`${BASE_URL}api/chats/${chatId}/share`, {
+      method: "DELETE", credentials: "include",
+      headers: tok ? { Authorization: `Bearer ${tok}` } : {},
+    });
     setShareToken(null);
     setShareMenuOpen(false);
   };
@@ -274,9 +284,13 @@ export default function ChatRoomPage() {
     try {
       const convo = messages.filter(m => m.role !== "system").slice(-20)
         .map(m => `${m.role}: ${m.content.replace(/<think>[\s\S]*?<\/think>/g, "").trim()}`).join("\n");
+      const extractTok = await getToken();
       const r = await fetch(`${BASE_URL}api/chats/${chatId}/messages/stream`, {
         method: "POST", credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(extractTok ? { Authorization: `Bearer ${extractTok}` } : {}),
+        },
         body: JSON.stringify({
           content: `Based on this conversation, extract 3-5 memorable facts about the user (preferences, goals, personal details, relationships). Return ONLY a JSON array of objects like: [{"content":"...","category":"preference|fact|goal|relationship|general"}]. No explanation, just the JSON.\n\nConversation:\n${convo}`,
           model: "gpt-4o-mini",
@@ -357,9 +371,14 @@ export default function ChatRoomPage() {
     streamAbortRef.current = controller;
 
     try {
+      const token = await getToken();
       const response = await fetch(`${BASE_URL}api/chats/${chatId}/messages/stream`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           content: messageContent,
           model: selectedModel ?? chat?.model ?? undefined,
@@ -436,6 +455,8 @@ export default function ChatRoomPage() {
   const activeModelName = models?.find((m) => m.id === activeModel)?.name ?? activeModel;
 
   if (!chatId) return <div className="p-8 text-destructive">Invalid chat</div>;
+
+  const isEmpty = !msgsLoading && !messages?.length && !isStreaming;
 
   return (
     <div className="flex flex-col h-[calc(100vh-theme(spacing.14))] md:h-[calc(100vh-0px)] -m-4 md:-m-6 lg:-m-8">
@@ -670,19 +691,15 @@ export default function ChatRoomPage() {
         </div>
       </header>
 
-      {/* ── Messages ───────────────────────────────────────────── */}
-      <div
-        className="flex-1 overflow-y-auto px-4 py-6 space-y-6"
-        onClick={() => { setModelDropdownOpen(false); setExportMenuOpen(false); setPersonaDropdownOpen(false); setShareMenuOpen(false); }}
-      >
-        {msgsLoading ? (
-          <div className="space-y-8 max-w-3xl mx-auto">
-            <Skeleton className="h-20 w-3/4 ml-auto rounded-2xl" />
-            <Skeleton className="h-32 w-4/5 rounded-2xl" />
-          </div>
-        ) : messages?.length === 0 && !isStreaming ? (
-          <div className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto gap-8 py-12">
-            <div>
+      {/* ── Empty state: input centred on screen ── */}
+      {isEmpty && (
+        <div
+          className="flex-1 flex flex-col items-center justify-center px-4 py-8"
+          onClick={() => { setModelDropdownOpen(false); setExportMenuOpen(false); setPersonaDropdownOpen(false); setShareMenuOpen(false); }}
+        >
+          <div className="w-full max-w-2xl space-y-6">
+            {/* Hero */}
+            <div className="text-center">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-primary/20 flex items-center justify-center mx-auto mb-4">
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
@@ -693,7 +710,64 @@ export default function ChatRoomPage() {
                   : "Ask me anything, or enable Agent mode for autonomous actions."}
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-2 w-full">
+
+            {/* Input bar centred */}
+            <div>
+              {attachedImage && (
+                <div className="mb-2 relative inline-block">
+                  <img src={attachedImage} alt="Attachment preview" className="h-16 w-16 object-cover rounded-lg border border-border" />
+                  <button onClick={() => setAttachedImage(null)} className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-destructive">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+              <form onSubmit={handleSend}>
+                <div className={cn(
+                  "flex flex-col rounded-2xl border transition-all duration-200",
+                  isDark
+                    ? "bg-white/[0.03] border-border focus-within:border-primary/40 focus-within:bg-white/[0.05]"
+                    : "bg-background border-border focus-within:border-primary/60 shadow-sm"
+                )}>
+                  <textarea
+                    ref={textareaRef}
+                    className="w-full min-h-[52px] max-h-[200px] resize-none bg-transparent px-4 pt-3.5 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none leading-relaxed"
+                    placeholder={agentMode ? "Ask me to do anything — I can search, create tasks, and more…" : "Message Mithra…"}
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                    rows={1}
+                    autoFocus
+                  />
+                  <div className="flex items-center justify-between px-3 pb-2.5 pt-1">
+                    <div className="relative flex items-center gap-1.5">
+                      {agentMode && (
+                        <span className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20 text-[11px]">
+                          <Bot className="w-3 h-3" /> Agent Mode
+                        </span>
+                      )}
+                      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAttachImage(f); e.target.value = ""; }} />
+                      <button type="button" onClick={() => fileInputRef.current?.click()} title="Attach an image" className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+                        <Paperclip className="w-4 h-4" />
+                      </button>
+                      <VoiceChat onTranscript={(text) => { setContent(text); setTimeout(handleSend, 100); }} lastAiMessage={undefined} disabled={isStreaming} />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-muted-foreground/50 hidden sm:block">Shift+Enter for new line</span>
+                      <button type="submit" disabled={(!content.trim() && !attachedImage) || isStreaming} className={cn(
+                        "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200",
+                        (content.trim() || attachedImage) && !isStreaming ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm" : "bg-muted text-muted-foreground cursor-not-allowed"
+                      )}>
+                        {isStreaming ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5 translate-x-px" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+              <p className="text-center text-[10px] text-muted-foreground/40 mt-2">Mithra can make mistakes. Verify important information.</p>
+            </div>
+
+            {/* Suggested prompts */}
+            <div className="grid grid-cols-2 gap-2">
               {SUGGESTED_PROMPTS.map((p) => (
                 <button
                   key={p.text}
@@ -711,8 +785,23 @@ export default function ChatRoomPage() {
               ))}
             </div>
           </div>
-        ) : (
-          <div className="max-w-3xl mx-auto space-y-6 pb-2">
+        </div>
+      )}
+
+      {/* ── Messages + input when not empty ── */}
+      {!isEmpty && (
+        <>
+          <div
+            className="flex-1 overflow-y-auto px-4 py-6"
+            onClick={() => { setModelDropdownOpen(false); setExportMenuOpen(false); setPersonaDropdownOpen(false); setShareMenuOpen(false); }}
+          >
+            {msgsLoading ? (
+              <div className="space-y-8 max-w-3xl mx-auto">
+                <Skeleton className="h-20 w-3/4 ml-auto rounded-2xl" />
+                <Skeleton className="h-32 w-4/5 rounded-2xl" />
+              </div>
+            ) : (
+            <div className="max-w-3xl mx-auto space-y-6 pb-2">
             {messages?.map((msg) => {
               const isUser = msg.role === "user";
               const toolCalls = (msg as unknown as { toolCalls?: Array<{ name: string; result: string }> }).toolCalls;
@@ -850,11 +939,11 @@ export default function ChatRoomPage() {
               </div>
             )}
             <div ref={messagesEndRef} className="h-1" />
+            </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* ── Input ──────────────────────────────────────────────── */}
+          {/* ── Input ──────────────────────────────────────────────── */}
       <div className={cn(
         "px-4 py-4 shrink-0 border-t",
         isDark ? "border-border/50 bg-background/80 backdrop-blur-xl" : "border-border bg-background"
@@ -944,6 +1033,8 @@ export default function ChatRoomPage() {
           </p>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

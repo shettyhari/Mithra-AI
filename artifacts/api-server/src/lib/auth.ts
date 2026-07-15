@@ -86,11 +86,12 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
       const freshEmail = clerkUser.emailAddresses.find(e => e.id === clerkUser.primaryEmailAddressId)?.emailAddress || clerkUser.emailAddresses[0]?.emailAddress;
       const freshName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || clerkUser.username;
       if (freshName || freshEmail) {
-        [user] = await db.update(usersTable).set({
+        const [updated] = await db.update(usersTable).set({
           name: freshName || user.name,
           email: freshEmail || user.email,
           avatarUrl: clerkUser.imageUrl || user.avatarUrl,
         }).where(eq(usersTable.id, user.id)).returning();
+        if (updated) user = updated;
       }
     } catch (err) {
       req.log.warn({ err }, "Failed to backfill Clerk user profile");

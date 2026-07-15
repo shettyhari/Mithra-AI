@@ -210,7 +210,7 @@ export default function AdminPage() {
   const isDark = theme === "dark";
   const { toast } = useToast();
 
-  const { data: stats, isLoading: statsLoading } = useAdminGetSystemStats();
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useAdminGetSystemStats();
   const { data: aiKeys } = useAdminGetAiKeys();
   const { data: aiConfig } = useAdminGetDefaultAiConfig();
   const { data: auditLogs } = useAdminListAuditLogs();
@@ -308,11 +308,12 @@ export default function AdminPage() {
       {/* ── OVERVIEW TAB ─────────────────────────────────── */}
       {activeTab === "overview" && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {[
               { label: "Family Members", value: stats?.totalUsers ?? 0, icon: Users, color: "text-purple-400" },
-              { label: "Active Tokens", value: (stats?.totalTokensUsed ?? 0).toLocaleString(), icon: Activity, color: "text-cyan-400" },
-              { label: "Total Messages", value: (stats?.totalMessages ?? 0).toLocaleString(), icon: Server, color: "text-yellow-400" },
+              { label: "Total Chats", value: (stats?.totalChats ?? 0).toLocaleString(), icon: Server, color: "text-blue-400" },
+              { label: "Total Messages", value: (stats?.totalMessages ?? 0).toLocaleString(), icon: Activity, color: "text-yellow-400" },
+              { label: "Tokens Used", value: (stats?.totalTokensUsed ?? 0).toLocaleString(), icon: Zap, color: "text-cyan-400" },
               { label: "Storage Used", value: fmtBytes(stats?.storageUsedBytes ?? 0), icon: Database, color: "text-red-400" },
             ].map((stat) => (
               <Card key={stat.label} className={cn(isDark ? "bg-background/50 border-border" : "border-border")}>
@@ -335,16 +336,38 @@ export default function AdminPage() {
                 <CardTitle className="text-lg text-foreground">System Status</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {["API Services", "Database", "AI Providers"].map((svc) => (
-                  <div key={svc} className={cn(
+                {[
+                  {
+                    name: "API Services",
+                    ok: !statsError,
+                    label: statsLoading ? "Checking…" : statsError ? "Degraded" : "Operational",
+                  },
+                  {
+                    name: "Database",
+                    ok: !!stats && !statsError,
+                    label: statsLoading ? "Checking…" : statsError ? "Unavailable" : `${stats!.totalUsers} users · ${stats!.totalChats} chats`,
+                  },
+                  {
+                    name: "AI Providers",
+                    ok: Object.values(keyStatus).some(Boolean),
+                    label: (() => {
+                      const n = Object.values(keyStatus).filter(Boolean).length;
+                      return n === 0 ? "No keys configured" : `${n} provider${n > 1 ? "s" : ""} active`;
+                    })(),
+                  },
+                ].map(({ name, ok, label }) => (
+                  <div key={name} className={cn(
                     "flex items-center justify-between p-3 rounded-lg border",
                     isDark ? "border-border/50 bg-muted/10" : "border-border bg-muted/30"
                   )}>
                     <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-                      <span className="text-sm text-foreground">{svc}</span>
+                      <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        ok ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.6)]"
+                      )} />
+                      <span className="text-sm text-foreground">{name}</span>
                     </div>
-                    <span className="text-xs text-green-500 font-medium">Operational</span>
+                    <span className={cn("text-xs font-medium", ok ? "text-green-500" : "text-yellow-500")}>{label}</span>
                   </div>
                 ))}
               </CardContent>
