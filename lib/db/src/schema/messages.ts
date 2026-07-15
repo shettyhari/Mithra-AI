@@ -10,6 +10,7 @@ export const messagesTable = pgTable("messages", {
   content: text("content").notNull(),
   model: text("model"),
   tokensUsed: integer("tokens_used"),
+  imageUrl: text("image_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

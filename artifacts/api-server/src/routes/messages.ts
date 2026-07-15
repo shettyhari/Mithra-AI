@@ -3,7 +3,7 @@ import { eq, and, asc } from "drizzle-orm";
 import { db } from "@workspace/db";
 import { messagesTable, chatsTable, aiConfigTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
-import { callAi } from "../lib/ai";
+import { callAi, callAiStream } from "../lib/ai";
 import {
   ListMessagesParams,
   ListMessagesResponseItem,
@@ -28,6 +28,7 @@ function serializeMessage(msg: typeof messagesTable.$inferSelect) {
     content: msg.content,
     model: msg.model,
     tokensUsed: msg.tokensUsed,
+    imageUrl: msg.imageUrl,
     createdAt: msg.createdAt.toISOString(),
   };
 }
@@ -64,8 +65,9 @@ router.post("/chats/:chatId/messages", requireAuth, async (req, res): Promise<vo
     return;
   }
 
-  // agentMode is an extension not in the OpenAPI spec — read it directly from body
-  const agentMode = !!(req.body as { agentMode?: boolean }).agentMode;
+  const agentMode = !!parsed.data.agentMode;
+  const reasoningMode = !!parsed.data.reasoningMode;
+  const imageUrl = parsed.data.imageUrl ?? null;
 
   const [chat] = await db.select().from(chatsTable)
     .where(and(eq(chatsTable.id, params.data.chatId), eq(chatsTable.userId, req.userId!)));
@@ -84,6 +86,7 @@ router.post("/chats/:chatId/messages", requireAuth, async (req, res): Promise<vo
     chatId: params.data.chatId,
     role: "user",
     content: parsed.data.content,
+    imageUrl,
   }).returning();
 
   // Get conversation history for context
@@ -95,6 +98,7 @@ router.post("/chats/:chatId/messages", requireAuth, async (req, res): Promise<vo
   const aiMessages = history.map(m => ({
     role: m.role as "user" | "assistant" | "system",
     content: m.content,
+    imageUrl: m.imageUrl ?? undefined,
   }));
 
   let aiContent = "";
@@ -108,6 +112,7 @@ router.post("/chats/:chatId/messages", requireAuth, async (req, res): Promise<vo
       defaultConfig.systemPrompt,
       agentMode,
       req.userId!,
+      reasoningMode,
     );
     aiContent = aiResponse.content;
     tokensUsed = aiResponse.tokensUsed;
@@ -132,6 +137,102 @@ router.post("/chats/:chatId/messages", requireAuth, async (req, res): Promise<vo
     userMessage: serializeMessage(userMsg),
     assistantMessage: serializeMessage(assistantMsg),
   }));
+});
+
+// POST /chats/:chatId/messages/stream — SSE streaming variant.
+// Not part of the generated OpenAPI client (which is strictly JSON/Promise
+// based) — the frontend calls this directly with fetch + ReadableStream.
+router.post("/chats/:chatId/messages/stream", requireAuth, async (req, res): Promise<void> => {
+  const params = SendMessageParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const parsed = SendMessageBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const agentMode = !!parsed.data.agentMode;
+  const reasoningMode = !!parsed.data.reasoningMode;
+  const imageUrl = parsed.data.imageUrl ?? null;
+
+  const [chat] = await db.select().from(chatsTable)
+    .where(and(eq(chatsTable.id, params.data.chatId), eq(chatsTable.userId, req.userId!)));
+  if (!chat) {
+    res.status(404).json({ error: "Chat not found" });
+    return;
+  }
+
+  const [aiConfig] = await db.select().from(aiConfigTable).where(eq(aiConfigTable.userId, req.userId!));
+  const defaultConfig = aiConfig ?? { defaultModel: "gpt-4o-mini", temperature: 0.7, maxTokens: 2048, systemPrompt: null };
+  const modelId = parsed.data.model ?? chat.model ?? defaultConfig.defaultModel;
+
+  const [userMsg] = await db.insert(messagesTable).values({
+    chatId: params.data.chatId,
+    role: "user",
+    content: parsed.data.content,
+    imageUrl,
+  }).returning();
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders?.();
+
+  const send = (event: string, data: unknown) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+  send("user_message", serializeMessage(userMsg));
+
+  if (agentMode) {
+    // Agentic tool-calling isn't incrementally streamable with the current
+    // provider integration — fall back to the non-streaming call, then emit
+    // the whole answer as one delta so the client's rendering path is uniform.
+    try {
+      const history = await db.select().from(messagesTable)
+        .where(eq(messagesTable.chatId, params.data.chatId))
+        .orderBy(asc(messagesTable.createdAt))
+        .limit(20);
+      const aiMessages = history.map(m => ({ role: m.role as "user" | "assistant" | "system", content: m.content, imageUrl: m.imageUrl ?? undefined }));
+      const aiResponse = await callAi(aiMessages, modelId, defaultConfig.temperature, defaultConfig.maxTokens, defaultConfig.systemPrompt, agentMode, req.userId!, reasoningMode);
+      send("delta", { content: aiResponse.content });
+      const [assistantMsg] = await db.insert(messagesTable).values({
+        chatId: params.data.chatId, role: "assistant", content: aiResponse.content, model: modelId, tokensUsed: aiResponse.tokensUsed,
+      }).returning();
+      await db.update(chatsTable).set({ updatedAt: new Date() }).where(eq(chatsTable.id, params.data.chatId));
+      send("done", { assistantMessage: serializeMessage(assistantMsg) });
+    } catch (err) {
+      req.log.error({ err }, "Streaming AI call (agent mode) failed");
+      send("error", { error: "AI request failed" });
+    }
+    res.end();
+    return;
+  }
+
+  try {
+    const history = await db.select().from(messagesTable)
+      .where(eq(messagesTable.chatId, params.data.chatId))
+      .orderBy(asc(messagesTable.createdAt))
+      .limit(20);
+    const aiMessages = history.map(m => ({ role: m.role as "user" | "assistant" | "system", content: m.content, imageUrl: m.imageUrl ?? undefined }));
+
+    const result = await callAiStream(
+      aiMessages, modelId, defaultConfig.temperature, defaultConfig.maxTokens, defaultConfig.systemPrompt, reasoningMode,
+      (delta) => send("delta", { content: delta }),
+    );
+
+    const [assistantMsg] = await db.insert(messagesTable).values({
+      chatId: params.data.chatId, role: "assistant", content: result.content, model: modelId, tokensUsed: result.tokensUsed,
+    }).returning();
+    await db.update(chatsTable).set({ updatedAt: new Date() }).where(eq(chatsTable.id, params.data.chatId));
+    send("done", { assistantMessage: serializeMessage(assistantMsg) });
+  } catch (err) {
+    req.log.error({ err }, "Streaming AI call failed");
+    send("error", { error: "AI request failed" });
+  }
+  res.end();
 });
 
 // PATCH /messages/:messageId

@@ -137,6 +137,8 @@ export interface Message {
   model?: string | null;
   /** @nullable */
   tokensUsed?: number | null;
+  /** @nullable */
+  imageUrl?: string | null;
   createdAt: string;
 }
 
@@ -150,6 +152,10 @@ export interface MessageInput {
   content: string;
   /** @nullable */
   model?: string | null;
+  agentMode?: boolean;
+  reasoningMode?: boolean;
+  /** @nullable */
+  imageUrl?: string | null;
 }
 
 export interface MessageEdit {

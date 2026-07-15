@@ -269,6 +269,7 @@ export const ListMessagesResponseItem = zod.object({
   "content": zod.string(),
   "model": zod.string().nullish(),
   "tokensUsed": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
   "createdAt": zod.string()
 })
 export const ListMessagesResponse = zod.array(ListMessagesResponseItem)
@@ -286,7 +287,10 @@ export const SendMessageParams = zod.object({
 
 export const SendMessageBody = zod.object({
   "content": zod.string().min(1),
-  "model": zod.string().nullish()
+  "model": zod.string().nullish(),
+  "agentMode": zod.boolean().optional(),
+  "reasoningMode": zod.boolean().optional(),
+  "imageUrl": zod.string().nullish()
 })
 
 export const SendMessageResponse = zod.object({
@@ -297,6 +301,7 @@ export const SendMessageResponse = zod.object({
   "content": zod.string(),
   "model": zod.string().nullish(),
   "tokensUsed": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
   "createdAt": zod.string()
 }),
   "assistantMessage": zod.object({
@@ -306,6 +311,7 @@ export const SendMessageResponse = zod.object({
   "content": zod.string(),
   "model": zod.string().nullish(),
   "tokensUsed": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
   "createdAt": zod.string()
 })
 })
@@ -332,6 +338,7 @@ export const EditMessageResponse = zod.object({
   "content": zod.string(),
   "model": zod.string().nullish(),
   "tokensUsed": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
   "createdAt": zod.string()
 })
 
@@ -360,6 +367,7 @@ export const RegenerateMessageResponse = zod.object({
   "content": zod.string(),
   "model": zod.string().nullish(),
   "tokensUsed": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
   "createdAt": zod.string()
 })
 

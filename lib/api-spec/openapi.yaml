@@ -1028,6 +1028,8 @@ components:
           type: ["string", "null"]
         tokensUsed:
           type: ["integer", "null"]
+        imageUrl:
+          type: ["string", "null"]
         createdAt:
           type: string
 
@@ -1048,6 +1050,12 @@ components:
           type: string
           minLength: 1
         model:
+          type: ["string", "null"]
+        agentMode:
+          type: boolean
+        reasoningMode:
+          type: boolean
+        imageUrl:
           type: ["string", "null"]
 
     MessageEdit:

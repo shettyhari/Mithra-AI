@@ -11,4 +11,8 @@ export interface MessageInput {
   content: string;
   /** @nullable */
   model?: string | null;
+  agentMode?: boolean;
+  reasoningMode?: boolean;
+  /** @nullable */
+  imageUrl?: string | null;
 }

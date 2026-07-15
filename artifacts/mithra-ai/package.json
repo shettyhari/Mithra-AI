@@ -78,7 +78,10 @@
     "@clerk/react": "^6.12.2",
     "@clerk/themes": "^2.4.57",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "docx": "^9.7.1",
     "internal": "link:@clerk/react/internal",
+    "jspdf": "^4.2.1",
+    "mermaid": "^11.16.0",
     "react-markdown": "^10.1.0",
     "react-syntax-highlighter": "^16.1.1",
     "remark-gfm": "^4.0.1"

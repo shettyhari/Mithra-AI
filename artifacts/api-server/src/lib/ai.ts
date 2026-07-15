@@ -7,6 +7,32 @@ export interface ChatMessage {
   content: string;
   tool_call_id?: string;
   name?: string;
+  imageUrl?: string;
+}
+
+const REASONING_INSTRUCTION =
+  "Before answering, think through the problem step by step inside <think></think> tags. " +
+  "After the closing </think> tag, give your final answer as normal — do not repeat the reasoning there. " +
+  "Always include both the <think>...</think> block and the final answer.";
+
+function isVisionCapable(modelId: string): boolean {
+  return /^(gpt-4o|gpt-4-turbo|claude-3-5|claude-3-opus|gemini-1\.5)/.test(modelId);
+}
+
+// Build the provider-specific "content" value for a message, embedding an
+// image as a multi-part payload when present and the model supports vision.
+function buildOpenAiContent(msg: ChatMessage, modelId: string): string | Array<Record<string, unknown>> {
+  if (!msg.imageUrl || !isVisionCapable(modelId)) return msg.content;
+  return [
+    { type: "text", text: msg.content || "What's in this image?" },
+    { type: "image_url", image_url: { url: msg.imageUrl } },
+  ];
+}
+
+function dataUrlToAnthropicSource(dataUrl: string): { type: "base64"; media_type: string; data: string } | null {
+  const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/.exec(dataUrl);
+  if (!match) return null;
+  return { type: "base64", media_type: match[1], data: match[2] };
 }
 
 export interface AiResponse {
@@ -199,13 +225,18 @@ export async function callAi(
   systemPrompt?: string | null,
   agentMode = false,
   userId?: number,
+  reasoningMode = false,
 ): Promise<AiResponse> {
   const provider = getProviderForModel(modelId);
   const apiKey = await getDecryptedKey(provider);
 
+  const effectiveSystemPrompt = [systemPrompt, reasoningMode ? REASONING_INSTRUCTION : null]
+    .filter(Boolean)
+    .join("\n\n");
+
   const allMessages: ChatMessage[] = [];
-  if (systemPrompt) {
-    allMessages.push({ role: "system", content: systemPrompt });
+  if (effectiveSystemPrompt) {
+    allMessages.push({ role: "system", content: effectiveSystemPrompt });
   }
   allMessages.push(...messages);
 
@@ -230,7 +261,7 @@ export async function callAi(
 
     const body: Record<string, unknown> = {
       model: modelId,
-      messages: allMessages,
+      messages: allMessages.map(m => ({ role: m.role, content: buildOpenAiContent(m, modelId) })),
       temperature,
       max_tokens: maxTokens,
     };
@@ -329,7 +360,21 @@ export async function callAi(
     }
 
     const systemMsg = allMessages.find(m => m.role === "system");
-    const chatMessages = allMessages.filter(m => m.role !== "system");
+    const chatMessages = allMessages.filter(m => m.role !== "system").map(m => {
+      if (m.imageUrl && isVisionCapable(modelId)) {
+        const source = dataUrlToAnthropicSource(m.imageUrl);
+        if (source) {
+          return {
+            role: m.role,
+            content: [
+              { type: "text", text: m.content || "What's in this image?" },
+              { type: "image", source },
+            ],
+          };
+        }
+      }
+      return { role: m.role, content: m.content };
+    });
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -363,7 +408,16 @@ export async function callAi(
 
     const geminiMessages = allMessages
       .filter(m => m.role !== "system")
-      .map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
+      .map(m => {
+        const parts: Array<Record<string, unknown>> = [{ text: m.content }];
+        if (m.imageUrl && isVisionCapable(modelId)) {
+          const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/.exec(m.imageUrl);
+          if (match) {
+            parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+          }
+        }
+        return { role: m.role === "assistant" ? "model" : "user", parts };
+      });
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${key}`,
@@ -388,4 +442,101 @@ export async function callAi(
   }
 
   return { content: "Unknown provider.", tokensUsed: 0, model: modelId };
+}
+
+// Streaming variant used by the SSE chat endpoint. OpenAI-compatible
+// providers (openai/groq/openrouter) stream token-by-token via SSE deltas;
+// Anthropic/Gemini fall back to a single non-streamed chunk (still delivered
+// through the same onDelta callback so the caller doesn't need to branch).
+export async function callAiStream(
+  messages: ChatMessage[],
+  modelId: string,
+  temperature: number,
+  maxTokens: number,
+  systemPrompt: string | null | undefined,
+  reasoningMode: boolean,
+  onDelta: (delta: string) => void,
+): Promise<{ content: string; tokensUsed: number }> {
+  const provider = getProviderForModel(modelId);
+  const apiKey = await getDecryptedKey(provider);
+
+  const effectiveSystemPrompt = [systemPrompt, reasoningMode ? REASONING_INSTRUCTION : null]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const allMessages: ChatMessage[] = [];
+  if (effectiveSystemPrompt) {
+    allMessages.push({ role: "system", content: effectiveSystemPrompt });
+  }
+  allMessages.push(...messages);
+
+  if (provider === "openai" || provider === "groq" || provider === "openrouter") {
+    const baseURL = provider === "groq"
+      ? "https://api.groq.com/openai/v1"
+      : provider === "openrouter"
+        ? "https://openrouter.ai/api/v1"
+        : "https://api.openai.com/v1";
+    const key = apiKey || process.env.OPENAI_API_KEY;
+    if (!key) {
+      const msg = "No API key configured for this provider. Please ask your admin to set up AI keys in the admin panel.";
+      onDelta(msg);
+      return { content: msg, tokensUsed: 0 };
+    }
+
+    const response = await fetch(`${baseURL}/chat/completions`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: modelId,
+        messages: allMessages.map(m => ({ role: m.role, content: buildOpenAiContent(m, modelId) })),
+        temperature,
+        max_tokens: maxTokens,
+        stream: true,
+      }),
+    });
+
+    if (!response.ok || !response.body) {
+      const errorText = response.body ? await response.text() : "no response body";
+      throw new Error(`AI API error: ${response.status} ${errorText}`);
+    }
+
+    let fullContent = "";
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("data:")) continue;
+        const payload = trimmed.slice(5).trim();
+        if (payload === "[DONE]") continue;
+        try {
+          const json = JSON.parse(payload) as { choices?: Array<{ delta?: { content?: string } }> };
+          const delta = json.choices?.[0]?.delta?.content;
+          if (delta) {
+            fullContent += delta;
+            onDelta(delta);
+          }
+        } catch {
+          // ignore malformed SSE lines
+        }
+      }
+    }
+
+    // Rough token estimate since usage isn't reported per-chunk in streaming mode.
+    const tokensUsed = Math.ceil(fullContent.length / 4);
+    return { content: fullContent, tokensUsed };
+  }
+
+  // Anthropic / Gemini: no incremental streaming implemented yet — deliver
+  // the full response as a single delta so the UI still renders it.
+  const result = await callAi(messages, modelId, temperature, maxTokens, systemPrompt, false, undefined, reasoningMode);
+  onDelta(result.content);
+  return { content: result.content, tokensUsed: result.tokensUsed };
 }

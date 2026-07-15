@@ -16,5 +16,7 @@ export interface Message {
   model?: string | null;
   /** @nullable */
   tokensUsed?: number | null;
+  /** @nullable */
+  imageUrl?: string | null;
   createdAt: string;
 }
