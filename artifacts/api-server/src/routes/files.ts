@@ -3,6 +3,7 @@ import { eq, and, ilike, sql } from "drizzle-orm";
 import { db } from "@workspace/db";
 import { filesTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
+import { callAi } from "../lib/ai";
 import {
   ListFilesQueryParams,
   ListFilesResponseItem,
@@ -88,6 +89,41 @@ router.get("/files/:fileId", requireAuth, async (req, res): Promise<void> => {
     return;
   }
   res.json(GetFileResponse.parse(serializeFile(file)));
+});
+
+// POST /files/:fileId/analyze — AI analysis
+router.post("/files/:fileId/analyze", requireAuth, async (req, res) => {
+  try {
+    const fileId = parseInt(req.params.fileId);
+    const [file] = await db.select().from(filesTable)
+      .where(and(eq(filesTable.id, fileId), eq(filesTable.userId, req.userId!)));
+    if (!file) return res.status(404).json({ error: "File not found" });
+
+    const prompt = `You are analyzing a file named "${file.name}" (type: ${file.type}, size: ${file.size} bytes).
+${req.body?.context ? `Additional context: ${req.body.context}` : ""}
+Provide:
+1. A concise summary (2-3 sentences) of what this file likely contains based on its name and type.
+2. 3-5 key points or suggested uses for this file.
+Format your response as JSON: {"summary": "...", "keyPoints": ["...", "...", "..."]}`;
+
+    const raw = await callAi([{ role: "user", content: prompt }], { userId: req.userId! });
+    let summary = raw, keyPoints: string[] = [];
+    try {
+      const parsed = JSON.parse(raw.replace(/```json\n?|\n?```/g, "").trim());
+      summary = parsed.summary || raw;
+      keyPoints = parsed.keyPoints || [];
+    } catch {}
+
+    const [updated] = await db.update(filesTable).set({
+      aiSummary: summary,
+      aiKeyPoints: JSON.stringify(keyPoints),
+      aiAnalyzedAt: new Date(),
+    }).where(eq(filesTable.id, fileId)).returning();
+    res.json({ summary, keyPoints, analyzedAt: updated.aiAnalyzedAt });
+  } catch (e) {
+    console.error("File analysis error:", e);
+    res.status(500).json({ error: "Failed to analyze file" });
+  }
 });
 
 // DELETE /files/:fileId

@@ -10,3 +10,7 @@ export * from "./auditLogs";
 export * from "./personas";
 export * from "./memories";
 export * from "./familyMembers";
+export * from "./events";
+export * from "./habits";
+export * from "./automations";
+export * from "./insights";

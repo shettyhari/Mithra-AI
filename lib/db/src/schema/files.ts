@@ -12,6 +12,9 @@ export const filesTable = pgTable("files", {
   size: integer("size").notNull().default(0), // bytes
   folder: text("folder"),
   url: text("url"),
+  aiSummary: text("ai_summary"),
+  aiKeyPoints: text("ai_key_points"), // JSON array of strings
+  aiAnalyzedAt: timestamp("ai_analyzed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => [

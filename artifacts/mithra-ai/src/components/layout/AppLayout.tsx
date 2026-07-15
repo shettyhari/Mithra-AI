@@ -21,6 +21,9 @@ import {
   Bot,
   Users,
   Brain,
+  Calendar,
+  Target,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGetMe, useGetUnreadNotificationCount } from "@workspace/api-client-react";
@@ -67,6 +70,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const navigation = [
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Insights", href: "/insights", icon: BarChart3 },
+    { name: "Calendar", href: "/calendar", icon: Calendar },
+    { name: "Habits", href: "/habits", icon: Target },
+    { name: "Automations", href: "/automations", icon: Zap },
     { name: "Personas", href: "/personas", icon: Bot },
     { name: "Family", href: "/family", icon: Users },
     { name: "Memory", href: "/memories", icon: Brain },

@@ -24,6 +24,10 @@ const AdminLoginPage   = lazy(() => import("./pages/admin/login"));
 const PersonasPage     = lazy(() => import("./pages/personas"));
 const FamilyPage       = lazy(() => import("./pages/family"));
 const MemoriesPage     = lazy(() => import("./pages/memories"));
+const CalendarPage     = lazy(() => import("./pages/calendar"));
+const HabitsPage       = lazy(() => import("./pages/habits"));
+const InsightsPage     = lazy(() => import("./pages/insights"));
+const AutomationsPage  = lazy(() => import("./pages/automations"));
 const SharedChatPage   = lazy(() => import("./pages/shared/[token]"));
 const NotFound         = lazy(() => import("./pages/not-found"));
 
@@ -234,6 +238,10 @@ function ClerkProviderWithRoutes() {
             <Route path="/personas" component={() => <ProtectedRoute component={PersonasPage} />} />
             <Route path="/family" component={() => <ProtectedRoute component={FamilyPage} />} />
             <Route path="/memories" component={() => <ProtectedRoute component={MemoriesPage} />} />
+            <Route path="/calendar" component={() => <ProtectedRoute component={CalendarPage} />} />
+            <Route path="/habits" component={() => <ProtectedRoute component={HabitsPage} />} />
+            <Route path="/insights" component={() => <ProtectedRoute component={InsightsPage} />} />
+            <Route path="/automations" component={() => <ProtectedRoute component={AutomationsPage} />} />
             <Route path="/shared/:token" component={SharedChatPage} />
             
             <Route component={NotFound} />
