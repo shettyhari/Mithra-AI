@@ -35,19 +35,25 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     const [countRow] = await db.select().from(usersTable);
     const isFirst = !countRow;
 
-    [user] = await db.insert(usersTable).values({
+    // Concurrent requests on first sign-in can race to insert the same user
+    // (unique on clerkId/email) — fall back to re-reading the row instead of erroring.
+    const [inserted] = await db.insert(usersTable).values({
       clerkId,
       email,
       name,
       avatarUrl,
       role: isFirst ? "admin" : "member",
-    }).returning();
+    }).onConflictDoNothing().returning();
 
-    // Create default settings
-    await db.insert(userSettingsTable).values({ userId: user.id }).onConflictDoNothing();
-
-    // Create default AI config
-    await db.insert(aiConfigTable).values({ userId: user.id }).onConflictDoNothing();
+    if (inserted) {
+      user = inserted;
+      // Create default settings
+      await db.insert(userSettingsTable).values({ userId: user.id }).onConflictDoNothing();
+      // Create default AI config
+      await db.insert(aiConfigTable).values({ userId: user.id }).onConflictDoNothing();
+    } else {
+      [user] = await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkId));
+    }
   }
 
   // Update last active

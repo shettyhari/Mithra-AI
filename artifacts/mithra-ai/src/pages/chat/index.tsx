@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useListChats, useCreateChat, useUpdateChat, useDeleteChat, getListChatsQueryKey } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { useLocation } from "wouter";
@@ -29,6 +29,20 @@ export default function ChatListPage() {
       }
     });
   };
+
+  // Land directly in a live conversation: jump into the most recent chat, or
+  // auto-create one, so /chat is a real AI chat screen rather than an empty list.
+  const autoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (search || isLoading || autoOpenedRef.current || !chats) return;
+    autoOpenedRef.current = true;
+    if (chats.length > 0) {
+      setLocation(`/chat/${chats[0].id}`);
+    } else if (!createChat.isPending) {
+      handleNewChat();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chats, isLoading, search]);
 
   const handlePin = (id: number, isPinned: boolean) => {
     updateChat.mutate({ chatId: id, data: { isPinned: !isPinned } }, {

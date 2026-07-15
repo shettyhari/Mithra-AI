@@ -62,8 +62,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   const navigation = [
+    { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Chats", href: "/chat", icon: MessageSquare },
     { name: "Files", href: "/files", icon: FolderOpen },
     { name: "Tasks", href: "/tasks", icon: CheckSquare },
     { name: "Notifications", href: "/notifications", icon: Bell, badge: unreadCount > 0 ? unreadCount : null },
