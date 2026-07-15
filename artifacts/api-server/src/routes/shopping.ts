@@ -149,15 +149,16 @@ router.post("/:listId/suggest", requireAuth, async (req, res) => {
 ${context ? `Additional context: ${context}` : ""}
 Suggest 5-8 additional items that would complement this list. Return ONLY a JSON array of strings, e.g. ["Milk", "Eggs", "Bread"]. No explanation.`;
 
-    const aiResponse = await callAi([{ role: "user", content: prompt }]);
+    const aiResult = await callAi([{ role: "user", content: prompt }], "gpt-4o-mini", 0.7, 512);
+    const aiText = aiResult.content;
     let suggestions: string[] = [];
     try {
-      const match = aiResponse.match(/\[[\s\S]*?\]/);
+      const match = aiText.match(/\[[\s\S]*?\]/);
       if (match) suggestions = JSON.parse(match[0]);
     } catch { suggestions = []; }
 
     res.json({ suggestions });
-  } catch { res.status(500).json({ error: "Failed to get suggestions" }); }
+  } catch { res.json({ suggestions: [] }); }
 });
 
 export default router;

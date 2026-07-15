@@ -129,7 +129,7 @@ ${note.content}
 
 Provide only the summary, no preamble.`;
 
-    const summary = await callAi([{ role: "user", content: prompt }]);
+    const summary = (await callAi([{ role: "user", content: prompt }], "gpt-4o-mini", 0.5, 256)).content;
 
     const [updated] = await db.update(notesTable)
       .set({ aiSummary: summary, aiSummarizedAt: new Date(), updatedAt: new Date() })

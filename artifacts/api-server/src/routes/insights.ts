@@ -89,7 +89,7 @@ Write a 3-4 sentence warm summary highlighting wins, gentle nudges for improveme
       prompt = `A user has ${stats.activeHabits} active habits and completed ${stats.habitCompletionsThisWeek} times this week. Give a brief, motivating insight about their habit progress and one specific suggestion to improve. 2-3 sentences.`;
     }
 
-    const content = await callAi([{ role: "user", content: prompt }], { userId: req.userId! });
+    const content = (await callAi([{ role: "user", content: prompt }], "gpt-4o-mini", 0.7, 512)).content;
     const expiresAt = new Date(Date.now() + 7 * 86400000);
 
     const [insight] = await db.insert(insightsTable).values({

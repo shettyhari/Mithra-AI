@@ -186,7 +186,8 @@ ${milestones.length ? `Milestones: ${milestones.map(m => `${m.title} (${m.isComp
 
 Give me 3 specific, actionable steps I can take RIGHT NOW to make progress on this goal. Be encouraging and practical.`;
 
-    const advice = await callAi([{ role: "user", content: prompt }]);
+    const result = await callAi([{ role: "user", content: prompt }], "gpt-4o-mini", 0.7, 512);
+    const advice = result.content;
     res.json({ advice });
   } catch { res.status(500).json({ error: "Failed to get coaching" }); }
 });

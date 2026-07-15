@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Zap, Play, Trash2, Edit2, Bell, CheckSquare, Brain, MessageSquare, Clock, ToggleRight } from "lucide-react";
+import { Plus, Zap, Play, Trash2, Edit2, Bell, CheckSquare, Brain, MessageSquare, Clock, ToggleRight, AlertCircle } from "lucide-react";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/theme";
@@ -96,11 +96,12 @@ export default function AutomationsPage() {
     return { ...(tok ? { Authorization: `Bearer ${tok}` } : {}), ...extra };
   };
 
-  const { data: automations = [], isLoading } = useQuery<Automation[]>({
+  const { data: automations = [], isLoading, error: automationsError } = useQuery<Automation[]>({
     queryKey: ["automations"],
     queryFn: async () => {
       const res = await fetch(`${BASE_URL}api/automations`, { credentials: "include", headers: await authHeaders() });
-      return res.ok ? res.json() : [];
+      if (!res.ok) throw new Error("Failed to load automations");
+      return res.json();
     },
   });
 
@@ -165,6 +166,13 @@ export default function AutomationsPage() {
   };
 
   const activeCount = automations.filter(a => a.isActive).length;
+
+  if (automationsError) return (
+    <div className="flex flex-col items-center justify-center min-h-[300px] gap-3 text-muted-foreground">
+      <AlertCircle className="w-8 h-8 text-destructive" />
+      <p className="text-sm">Failed to load automations. Please refresh the page.</p>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

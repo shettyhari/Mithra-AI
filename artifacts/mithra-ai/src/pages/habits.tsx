@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Flame, CheckCircle2, Circle, Trash2, Edit2, Target, Trophy, TrendingUp } from "lucide-react";
+import { Plus, Flame, CheckCircle2, Circle, Trash2, Edit2, Target, Trophy, TrendingUp, AlertCircle } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/theme";
@@ -62,11 +62,12 @@ export default function HabitsPage() {
     return { ...(tok ? { Authorization: `Bearer ${tok}` } : {}), ...extra };
   };
 
-  const { data: habits = [], isLoading } = useQuery<Habit[]>({
+  const { data: habits = [], isLoading, error: habitsError } = useQuery<Habit[]>({
     queryKey: ["habits"],
     queryFn: async () => {
       const res = await fetch(`${BASE_URL}api/habits`, { credentials: "include", headers: await authHeaders() });
-      return res.ok ? res.json() : [];
+      if (!res.ok) throw new Error("Failed to load habits");
+      return res.json();
     },
   });
 
@@ -127,6 +128,13 @@ export default function HabitsPage() {
   const completedToday = habits.filter(h => h.completedToday).length;
   const totalActive = habits.filter(h => h.isActive).length;
   const maxStreak = Math.max(0, ...habits.map(h => h.current));
+
+  if (habitsError) return (
+    <div className="flex flex-col items-center justify-center min-h-[300px] gap-3 text-muted-foreground">
+      <AlertCircle className="w-8 h-8 text-destructive" />
+      <p className="text-sm">Failed to load habits. Please refresh the page.</p>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

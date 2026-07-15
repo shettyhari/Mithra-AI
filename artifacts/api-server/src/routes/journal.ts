@@ -112,7 +112,7 @@ Write a warm, insightful reflection (3-4 sentences) that:
 3. Offers gentle encouragement or a positive perspective
 Keep it personal and supportive, not generic.`;
 
-    const reflection = await callAi([{ role: "user", content: prompt }]);
+    const reflection = (await callAi([{ role: "user", content: prompt }], "gpt-4o-mini", 0.8, 512)).content;
 
     const [updated] = await db.update(journalEntriesTable)
       .set({ aiReflection: reflection, aiReflectedAt: new Date(), updatedAt: new Date() })

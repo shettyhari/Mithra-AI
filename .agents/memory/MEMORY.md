@@ -3,3 +3,4 @@
 - [Phase 3 patterns](phase3-patterns.md) — calendar/habits/insights/automations/file-AI: schema, route mounting, streak algo, insight caching
 - [Phase 4 patterns](phase4-patterns.md) — shopping/budget/journal/goals/notes: schema, route fix (no /api prefix in router), AI endpoints
 - [Mithra AI auth pattern](mithra-ai-auth.md) — setBaseUrl+setAuthTokenGetter for generated client; authHeaders helper for raw fetch pages; 20mb body limit for image streaming
+- [QA fixes — production readiness](qa-fixes.md) — callAi returns AiResponse not string; admin gate; global error handler; date-fns dep; ErrorBoundary

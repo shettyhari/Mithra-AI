@@ -52,7 +52,6 @@
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "cmdk": "^1.1.1",
-    "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "catalog:",
     "input-otp": "^1.4.2",
@@ -76,6 +75,7 @@
   },
   "dependencies": {
     "@clerk/react": "^6.12.2",
+    "date-fns": "^3.6.0",
     "@clerk/themes": "^2.4.57",
     "@types/react-syntax-highlighter": "^15.5.13",
     "docx": "^9.7.1",

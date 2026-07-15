@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Star, Bot } from "lucide-react";
+import { Plus, Pencil, Trash2, Star, Bot, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Persona {
@@ -106,7 +106,7 @@ export default function PersonasPage() {
     return { ...(tok ? { Authorization: `Bearer ${tok}` } : {}), ...extra };
   };
 
-  const { data: personas = [], isLoading } = useQuery<Persona[]>({
+  const { data: personas = [], isLoading, error } = useQuery<Persona[]>({
     queryKey: ["personas"],
     queryFn: async () => {
       const res = await fetch(`${BASE_URL}api/personas`, { credentials: "include", headers: await authHeaders() });
@@ -151,6 +151,13 @@ export default function PersonasPage() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["personas"] }); setDeleting(null); toast({ title: "Persona deleted" }); },
     onError: () => toast({ title: "Failed to delete persona", variant: "destructive" }),
   });
+
+  if (error) return (
+    <div className="flex flex-col items-center justify-center min-h-[300px] gap-3 text-muted-foreground">
+      <AlertCircle className="w-8 h-8 text-destructive" />
+      <p className="text-sm">Failed to load personas. Please refresh the page.</p>
+    </div>
+  );
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">

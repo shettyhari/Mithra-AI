@@ -182,10 +182,8 @@ function ProtectedRoute({ component: Component, adminOnly = false }: { component
   
   if (!isLoaded) return <div className="min-h-screen flex items-center justify-center bg-background"><div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" /></div>;
   if (!user) return <Redirect to="/" />;
-  
-  // Assume publicMetadata contains role for simple admin check, or we fetch it inside the component.
-  // We'll let the layout/component handle detailed role checking from the DB if needed.
-  
+  if (adminOnly && (user.publicMetadata as Record<string, unknown>)?.role !== "admin") return <Redirect to="/dashboard" />;
+
   return (
     <AppLayout>
       <Component />

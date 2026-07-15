@@ -190,7 +190,8 @@ ${topExpenses || "No expenses recorded"}
 
 Give 3 specific, actionable pieces of financial advice in 2-3 sentences each. Be concise and helpful.`;
 
-    const advice = await callAi([{ role: "user", content: prompt }]);
+    const result = await callAi([{ role: "user", content: prompt }], "gpt-4o-mini", 0.7, 1024);
+    const advice = result.content;
     res.json({ advice });
   } catch { res.status(500).json({ error: "Failed to get AI advice" }); }
 });

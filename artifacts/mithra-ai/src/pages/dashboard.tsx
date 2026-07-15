@@ -2,12 +2,12 @@ import { useGetDashboardSummary, useListUpcomingTasks, useListRecentChats } from
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, FolderOpen, CheckSquare, Bell, Clock, ArrowRight } from "lucide-react";
+import { MessageSquare, FolderOpen, CheckSquare, Bell, Clock, ArrowRight, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 
 export default function DashboardPage() {
-  const { data: summary, isLoading: summaryLoading } = useGetDashboardSummary();
+  const { data: summary, isLoading: summaryLoading, error } = useGetDashboardSummary();
   const { data: tasks, isLoading: tasksLoading } = useListUpcomingTasks();
   const { data: chats, isLoading: chatsLoading } = useListRecentChats();
 
@@ -23,6 +23,13 @@ export default function DashboardPage() {
     hidden: { y: 20, opacity: 0 },
     visible: { y: 0, opacity: 1 }
   };
+
+  if (error) return (
+    <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+      <AlertCircle className="w-8 h-8 text-destructive" />
+      <p className="text-sm">Failed to load dashboard. Please refresh the page.</p>
+    </div>
+  );
 
   return (
     <div className="h-full flex flex-col space-y-6">

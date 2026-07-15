@@ -106,7 +106,7 @@ Provide:
 2. 3-5 key points or suggested uses for this file.
 Format your response as JSON: {"summary": "...", "keyPoints": ["...", "...", "..."]}`;
 
-    const raw = await callAi([{ role: "user", content: prompt }], { userId: req.userId! });
+    const raw = (await callAi([{ role: "user", content: prompt }], "gpt-4o-mini", 0.5, 512)).content;
     let summary = raw, keyPoints: string[] = [];
     try {
       const parsed = JSON.parse(raw.replace(/```json\n?|\n?```/g, "").trim());

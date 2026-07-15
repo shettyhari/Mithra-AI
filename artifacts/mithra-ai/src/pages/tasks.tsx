@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useListTasks, useCreateTask, useUpdateTask, useDeleteTask, getListTasksQueryKey } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
-import { Plus, GripVertical, CheckCircle2, Circle, Clock, Trash2, Calendar } from "lucide-react";
+import { Plus, GripVertical, CheckCircle2, Circle, Clock, Trash2, Calendar, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 
 export default function TasksPage() {
-  const { data: tasks, isLoading } = useListTasks();
+  const { data: tasks, isLoading, error } = useListTasks();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
@@ -51,6 +51,13 @@ export default function TasksPage() {
     { id: 'in_progress', title: 'In Progress', color: 'text-cyan-400', border: 'border-cyan-500/20' },
     { id: 'done', title: 'Done', color: 'text-purple-400', border: 'border-purple-500/20' },
   ];
+
+  if (error) return (
+    <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+      <AlertCircle className="w-8 h-8 text-destructive" />
+      <p className="text-sm">Failed to load tasks. Please refresh the page.</p>
+    </div>
+  );
 
   return (
     <div className="h-full flex flex-col space-y-6">

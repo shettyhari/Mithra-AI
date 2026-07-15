@@ -66,7 +66,7 @@ router.post("/:id/run", requireAuth, async (req, res) => {
       const title = actionConfig.notificationTitle || automation.name;
       let body = actionConfig.body || "";
       if (actionConfig.prompt) {
-        body = await callAi([{ role: "user", content: actionConfig.prompt }], { userId: req.userId! });
+        body = (await callAi([{ role: "user", content: actionConfig.prompt }], "gpt-4o-mini", 0.7, 512)).content;
       }
       await db.insert(notificationsTable).values({
         userId: req.userId!, type: "system", title, body, isRead: false,
@@ -81,7 +81,7 @@ router.post("/:id/run", requireAuth, async (req, res) => {
       result = `Task created: ${title}`;
     } else if (automation.actionType === "ai_summary") {
       const prompt = actionConfig.prompt || "Give me a brief daily summary and motivational message.";
-      const summary = await callAi([{ role: "user", content: prompt }], { userId: req.userId! });
+      const summary = (await callAi([{ role: "user", content: prompt }], "gpt-4o-mini", 0.7, 512)).content;
       await db.insert(notificationsTable).values({
         userId: req.userId!, type: "system", title: automation.name, body: summary, isRead: false,
       });
@@ -90,7 +90,7 @@ router.post("/:id/run", requireAuth, async (req, res) => {
       const chats = await db.select().from(chatsTable).where(eq(chatsTable.userId, req.userId!)).limit(1);
       if (chats.length > 0) {
         const prompt = actionConfig.prompt || "Give me a brief daily summary.";
-        const response = await callAi([{ role: "user", content: prompt }], { userId: req.userId! });
+        const response = (await callAi([{ role: "user", content: prompt }], "gpt-4o-mini", 0.7, 512)).content;
         await db.insert(messagesTable).values({ chatId: chats[0].id, role: "assistant", content: response });
         result = `Message sent to chat`;
       }
