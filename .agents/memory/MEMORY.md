@@ -4,3 +4,4 @@
 - [Phase 4 patterns](phase4-patterns.md) — shopping/budget/journal/goals/notes: schema, route fix (no /api prefix in router), AI endpoints
 - [Mithra AI auth pattern](mithra-ai-auth.md) — setBaseUrl+setAuthTokenGetter for generated client; authHeaders helper for raw fetch pages; 20mb body limit for image streaming
 - [QA fixes — production readiness](qa-fixes.md) — callAi returns AiResponse not string; admin gate; global error handler; date-fns dep; ErrorBoundary
+- [Clerk blank screen fixes](clerk-blank-screen.md) — VITE_CLERK_PROXY_URL not auto-injected (derive from REPLIT_DOMAINS in vite.config.ts); HomeRedirect must use useAuth() not <Show>

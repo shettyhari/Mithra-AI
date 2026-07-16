@@ -165,16 +165,10 @@ function ClerkQueryClientCacheInvalidator() {
 }
 
 function HomeRedirect() {
-  return (
-    <>
-      <Show when="signed-in">
-        <Redirect to="/chat" />
-      </Show>
-      <Show when="signed-out">
-        <LandingPage />
-      </Show>
-    </>
-  );
+  const { isLoaded, isSignedIn } = useAuth();
+  if (!isLoaded) return <PageSpinner />;
+  if (isSignedIn) return <Redirect to="/chat" />;
+  return <LandingPage />;
 }
 
 function ProtectedRoute({ component: Component, adminOnly = false }: { component: React.ComponentType, adminOnly?: boolean }) {
