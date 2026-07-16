@@ -324,7 +324,7 @@ export default function AutomationsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setShowCreate(false); setEditing(null); resetForm(); }}>Cancel</Button>
-            <Button onClick={() => editing ? updateMutation.mutate({ id: editing.id, data: form }) : createMutation.mutate(form)}
+            <Button onClick={() => editing ? updateMutation.mutate({ id: editing.id, data: { ...form, triggerConfig: Object.keys(form.triggerConfig).length ? JSON.stringify(form.triggerConfig) : undefined, actionConfig: Object.keys(form.actionConfig).length ? JSON.stringify(form.actionConfig) : undefined } }) : createMutation.mutate(form)}
               disabled={!form.name || createMutation.isPending || updateMutation.isPending}>
               {editing ? "Save" : "Create"}
             </Button>

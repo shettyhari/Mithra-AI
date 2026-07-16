@@ -1,6 +1,5 @@
 import { pgTable, text, serial, timestamp, boolean, integer, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
 import { usersTable } from "./users";
 
 export const automationsTable = pgTable("automations", {
@@ -24,5 +23,4 @@ export const automationsTable = pgTable("automations", {
 export const insertAutomationSchema = createInsertSchema(automationsTable).omit({
   id: true, createdAt: true, updatedAt: true, lastRunAt: true, runCount: true,
 });
-export type InsertAutomation = z.infer<typeof insertAutomationSchema>;
 export type Automation = typeof automationsTable.$inferSelect;

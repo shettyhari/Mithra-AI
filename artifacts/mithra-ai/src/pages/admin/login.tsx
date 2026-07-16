@@ -3,7 +3,7 @@ import { useUser } from "@clerk/react";
 import { Redirect, useLocation } from "wouter";
 import { ShieldAlert, Lock, Eye, EyeOff, Zap, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useGetMe } from "@workspace/api-client-react";
+import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/theme";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -12,7 +12,7 @@ const ADMIN_PASSCODE = "mithra-admin-2024";
 
 export default function AdminLoginPage() {
   const { isLoaded, isSignedIn } = useUser();
-  const { data: me, isLoading: meLoading } = useGetMe({ query: { enabled: isSignedIn } });
+  const { data: me, isLoading: meLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey(), enabled: isSignedIn ?? false } });
   const [, setLocation] = useLocation();
   const { theme } = useTheme();
   const isDark = theme === "dark";

@@ -46,7 +46,7 @@ router.post("/family", requireAuth, async (req, res): Promise<void> => {
 
 // PUT /family/:id
 router.put("/family/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = parseInt((req.params.id as string));
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid ID" });
     return;
@@ -71,7 +71,7 @@ router.put("/family/:id", requireAuth, async (req, res): Promise<void> => {
 
 // DELETE /family/:id
 router.delete("/family/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = parseInt((req.params.id as string));
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid ID" });
     return;

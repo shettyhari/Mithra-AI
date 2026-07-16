@@ -94,7 +94,7 @@ router.get("/files/:fileId", requireAuth, async (req, res): Promise<void> => {
 // POST /files/:fileId/analyze — AI analysis
 router.post("/files/:fileId/analyze", requireAuth, async (req, res) => {
   try {
-    const fileId = parseInt(req.params.fileId);
+    const fileId = parseInt((req.params.fileId as string));
     const [file] = await db.select().from(filesTable)
       .where(and(eq(filesTable.id, fileId), eq(filesTable.userId, req.userId!)));
     if (!file) return res.status(404).json({ error: "File not found" });

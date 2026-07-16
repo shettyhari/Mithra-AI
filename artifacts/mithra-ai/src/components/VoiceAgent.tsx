@@ -10,8 +10,8 @@ const WAKE_VARIANTS = ["hey mithra", "hi mithra", "okay mithra", "mithra", "hey 
 
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
   }
 }
 

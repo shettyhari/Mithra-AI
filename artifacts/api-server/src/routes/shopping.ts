@@ -43,7 +43,7 @@ router.post("/", requireAuth, async (req, res) => {
 
 router.put("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     const { title, emoji, color, isSharedWithFamily } = req.body;
     const [list] = await db.update(shoppingListsTable)
       .set({ title, emoji, color, isSharedWithFamily, updatedAt: new Date() })
@@ -56,7 +56,7 @@ router.put("/:id", requireAuth, async (req, res) => {
 
 router.delete("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     await db.delete(shoppingListsTable)
       .where(and(eq(shoppingListsTable.id, id), eq(shoppingListsTable.userId, req.userId!)));
     res.json({ ok: true });
@@ -66,7 +66,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
 // ── Items ──────────────────────────────────────────────────────────
 router.post("/:listId/items", requireAuth, async (req, res) => {
   try {
-    const listId = parseInt(req.params.listId);
+    const listId = parseInt((req.params.listId as string));
     const list = await db.select().from(shoppingListsTable)
       .where(and(eq(shoppingListsTable.id, listId), eq(shoppingListsTable.userId, req.userId!)));
     if (!list.length) return res.status(404).json({ error: "List not found" });
@@ -88,8 +88,8 @@ router.post("/:listId/items", requireAuth, async (req, res) => {
 
 router.put("/:listId/items/:itemId", requireAuth, async (req, res) => {
   try {
-    const itemId = parseInt(req.params.itemId);
-    const listId = parseInt(req.params.listId);
+    const itemId = parseInt((req.params.itemId as string));
+    const listId = parseInt((req.params.listId as string));
     const { name, quantity, category, note, isChecked, sortOrder } = req.body;
 
     const updates: Record<string, unknown> = { name, quantity, category, note, sortOrder };
@@ -113,8 +113,8 @@ router.put("/:listId/items/:itemId", requireAuth, async (req, res) => {
 
 router.delete("/:listId/items/:itemId", requireAuth, async (req, res) => {
   try {
-    const itemId = parseInt(req.params.itemId);
-    const listId = parseInt(req.params.listId);
+    const itemId = parseInt((req.params.itemId as string));
+    const listId = parseInt((req.params.listId as string));
     await db.delete(shoppingItemsTable)
       .where(and(eq(shoppingItemsTable.id, itemId), eq(shoppingItemsTable.userId, req.userId!)));
     await db.update(shoppingListsTable).set({ updatedAt: new Date() })
@@ -126,7 +126,7 @@ router.delete("/:listId/items/:itemId", requireAuth, async (req, res) => {
 // Clear checked items
 router.delete("/:listId/items/checked/all", requireAuth, async (req, res) => {
   try {
-    const listId = parseInt(req.params.listId);
+    const listId = parseInt((req.params.listId as string));
     const { sql } = await import("drizzle-orm");
     await db.delete(shoppingItemsTable)
       .where(and(eq(shoppingItemsTable.listId, listId), eq(shoppingItemsTable.userId, req.userId!), eq(shoppingItemsTable.isChecked, true)));
@@ -139,7 +139,7 @@ router.delete("/:listId/items/checked/all", requireAuth, async (req, res) => {
 // AI suggest items for a list
 router.post("/:listId/suggest", requireAuth, async (req, res) => {
   try {
-    const listId = parseInt(req.params.listId);
+    const listId = parseInt((req.params.listId as string));
     const items = await db.select().from(shoppingItemsTable)
       .where(eq(shoppingItemsTable.listId, listId));
     const itemNames = items.map(i => i.name).join(", ");

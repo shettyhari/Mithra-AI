@@ -1,6 +1,5 @@
 import { pgTable, text, serial, timestamp, boolean, integer, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
 import { usersTable } from "./users";
 
 export const userSettingsTable = pgTable("user_settings", {
@@ -23,5 +22,4 @@ export const userSettingsTable = pgTable("user_settings", {
 export const insertUserSettingsSchema = createInsertSchema(userSettingsTable).omit({
   id: true, createdAt: true, updatedAt: true,
 });
-export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
 export type UserSettings = typeof userSettingsTable.$inferSelect;

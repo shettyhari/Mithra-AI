@@ -148,7 +148,7 @@ function MessageContent({ content, isDark }: { content: string; isDark: boolean 
 }
 
 // Inline voice hook
-declare global { interface Window { SpeechRecognition: typeof SpeechRecognition; webkitSpeechRecognition: typeof SpeechRecognition; } }
+declare global { interface Window { SpeechRecognition: new () => SpeechRecognition; webkitSpeechRecognition: new () => SpeechRecognition; } }
 const WAKE_VARIANTS = ["hey mithra", "hi mithra", "okay mithra", "mithra"];
 
 function speakTTS(text: string, onEnd?: () => void) {

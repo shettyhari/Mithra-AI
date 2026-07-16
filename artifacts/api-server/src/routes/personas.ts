@@ -51,7 +51,7 @@ router.post("/personas", requireAuth, async (req, res): Promise<void> => {
 
 // PUT /personas/:id
 router.put("/personas/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = parseInt((req.params.id as string));
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid persona ID" });
     return;
@@ -86,7 +86,7 @@ router.put("/personas/:id", requireAuth, async (req, res): Promise<void> => {
 
 // DELETE /personas/:id
 router.delete("/personas/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = parseInt((req.params.id as string));
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid persona ID" });
     return;

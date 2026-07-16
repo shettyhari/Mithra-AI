@@ -39,7 +39,7 @@ router.post("/memories", requireAuth, async (req, res): Promise<void> => {
 
 // DELETE /memories/:id
 router.delete("/memories/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = parseInt((req.params.id as string));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid memory ID" }); return; }
   const [existing] = await db.select().from(memoriesTable)
     .where(and(eq(memoriesTable.id, id), eq(memoriesTable.userId, req.userId!)));

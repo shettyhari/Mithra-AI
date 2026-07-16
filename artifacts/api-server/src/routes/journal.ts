@@ -31,7 +31,7 @@ router.get("/", requireAuth, async (req, res) => {
 
 router.get("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     const [entry] = await db.select().from(journalEntriesTable)
       .where(and(eq(journalEntriesTable.id, id), eq(journalEntriesTable.userId, req.userId!)));
     if (!entry) return res.status(404).json({ error: "Entry not found" });
@@ -64,7 +64,7 @@ router.post("/", requireAuth, async (req, res) => {
 
 router.put("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     const { title, content, mood, moodLabel, tags } = req.body;
     const [entry] = await db.update(journalEntriesTable)
       .set({
@@ -81,7 +81,7 @@ router.put("/:id", requireAuth, async (req, res) => {
 
 router.delete("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     await db.delete(journalEntriesTable)
       .where(and(eq(journalEntriesTable.id, id), eq(journalEntriesTable.userId, req.userId!)));
     res.json({ ok: true });
@@ -91,7 +91,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
 // AI Reflection
 router.post("/:id/reflect", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     const [entry] = await db.select().from(journalEntriesTable)
       .where(and(eq(journalEntriesTable.id, id), eq(journalEntriesTable.userId, req.userId!)));
     if (!entry) return res.status(404).json({ error: "Entry not found" });

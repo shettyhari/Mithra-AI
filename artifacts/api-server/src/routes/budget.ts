@@ -32,7 +32,7 @@ router.post("/categories", requireAuth, async (req, res) => {
 
 router.put("/categories/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     const { name, emoji, color, type, monthlyBudget } = req.body;
     const [cat] = await db.update(budgetCategoriesTable)
       .set({ name, emoji, color, type, monthlyBudget })
@@ -45,7 +45,7 @@ router.put("/categories/:id", requireAuth, async (req, res) => {
 
 router.delete("/categories/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     await db.delete(budgetCategoriesTable)
       .where(and(eq(budgetCategoriesTable.id, id), eq(budgetCategoriesTable.userId, req.userId!)));
     res.json({ ok: true });
@@ -93,7 +93,7 @@ router.post("/transactions", requireAuth, async (req, res) => {
 
 router.put("/transactions/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     const { title, amount, type, date, categoryId, note, isRecurring, recurringPeriod } = req.body;
     const [txn] = await db.update(budgetTransactionsTable)
       .set({ title, amount: amount ? String(amount) : undefined, type, date, categoryId, note, isRecurring, recurringPeriod })
@@ -106,7 +106,7 @@ router.put("/transactions/:id", requireAuth, async (req, res) => {
 
 router.delete("/transactions/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     await db.delete(budgetTransactionsTable)
       .where(and(eq(budgetTransactionsTable.id, id), eq(budgetTransactionsTable.userId, req.userId!)));
     res.json({ ok: true });

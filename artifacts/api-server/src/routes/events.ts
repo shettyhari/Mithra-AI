@@ -46,7 +46,7 @@ router.post("/", requireAuth, async (req, res) => {
 
 router.put("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     const { startAt, endAt, ...rest } = req.body;
     const [event] = await db.update(eventsTable).set({
       ...rest,
@@ -60,7 +60,7 @@ router.put("/:id", requireAuth, async (req, res) => {
 
 router.delete("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     await db.delete(eventsTable).where(and(eq(eventsTable.id, id), eq(eventsTable.userId, req.userId!)));
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: "Failed to delete event" }); }

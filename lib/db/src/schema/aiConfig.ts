@@ -1,6 +1,5 @@
 import { pgTable, text, serial, timestamp, boolean, integer, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
 
 // Per-user AI config (optional override)
 export const aiConfigTable = pgTable("ai_config", {
@@ -28,11 +27,9 @@ export const aiKeysTable = pgTable("ai_keys", {
 export const insertAiConfigSchema = createInsertSchema(aiConfigTable).omit({
   id: true, createdAt: true, updatedAt: true,
 });
-export type InsertAiConfig = z.infer<typeof insertAiConfigSchema>;
 export type AiConfig = typeof aiConfigTable.$inferSelect;
 
 export const insertAiKeySchema = createInsertSchema(aiKeysTable).omit({
   id: true, createdAt: true, updatedAt: true,
 });
-export type InsertAiKey = z.infer<typeof insertAiKeySchema>;
 export type AiKey = typeof aiKeysTable.$inferSelect;

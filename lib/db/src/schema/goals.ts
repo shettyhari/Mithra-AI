@@ -1,6 +1,5 @@
 import { pgTable, text, serial, timestamp, boolean, integer, index, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
 import { usersTable } from "./users";
 
 export const goalsTable = pgTable("goals", {
@@ -48,5 +47,3 @@ export const insertGoalMilestoneSchema = createInsertSchema(goalMilestonesTable)
 
 export type Goal = typeof goalsTable.$inferSelect;
 export type GoalMilestone = typeof goalMilestonesTable.$inferSelect;
-export type InsertGoal = z.infer<typeof insertGoalSchema>;
-export type InsertGoalMilestone = z.infer<typeof insertGoalMilestoneSchema>;

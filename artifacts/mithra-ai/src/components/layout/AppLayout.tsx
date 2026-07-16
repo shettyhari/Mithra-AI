@@ -14,7 +14,7 @@ import {
   BookOpen, Flag, StickyNote, ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useGetMe, useGetUnreadNotificationCount } from "@workspace/api-client-react";
+import { useGetMe, useGetUnreadNotificationCount, getGetMeQueryKey, getGetUnreadNotificationCountQueryKey } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // ── Navigation categories ──────────────────────────────────────────
@@ -102,10 +102,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   });
 
   const { data: me, isLoading: meLoading } = useGetMe({
-    query: { retry: false, staleTime: 1000 * 60 * 5 },
+    query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 1000 * 60 * 5 },
   });
   const { data: unreadData } = useGetUnreadNotificationCount({
-    query: { refetchInterval: 1000 * 60 },
+    query: { queryKey: getGetUnreadNotificationCountQueryKey(), refetchInterval: 1000 * 60 },
   });
 
   const isAdmin = me?.role === "admin";

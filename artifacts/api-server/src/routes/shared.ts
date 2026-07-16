@@ -9,7 +9,7 @@ const router: IRouter = Router();
 
 // POST /chats/:chatId/share  — generate or return share token
 router.post("/chats/:chatId/share", requireAuth, async (req, res): Promise<void> => {
-  const chatId = parseInt(req.params.chatId);
+  const chatId = parseInt((req.params.chatId as string));
   if (isNaN(chatId)) { res.status(400).json({ error: "Invalid chat ID" }); return; }
 
   const [chat] = await db.select().from(chatsTable)
@@ -25,7 +25,7 @@ router.post("/chats/:chatId/share", requireAuth, async (req, res): Promise<void>
 
 // DELETE /chats/:chatId/share  — revoke share token
 router.delete("/chats/:chatId/share", requireAuth, async (req, res): Promise<void> => {
-  const chatId = parseInt(req.params.chatId);
+  const chatId = parseInt((req.params.chatId as string));
   if (isNaN(chatId)) { res.status(400).json({ error: "Invalid chat ID" }); return; }
 
   const [chat] = await db.select().from(chatsTable)

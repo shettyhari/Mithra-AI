@@ -1,6 +1,5 @@
 import { pgTable, text, serial, timestamp, boolean, integer, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
 import { usersTable } from "./users";
 
 export const notificationsTable = pgTable("notifications", {
@@ -20,5 +19,4 @@ export const notificationsTable = pgTable("notifications", {
 export const insertNotificationSchema = createInsertSchema(notificationsTable).omit({
   id: true, createdAt: true,
 });
-export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = typeof notificationsTable.$inferSelect;

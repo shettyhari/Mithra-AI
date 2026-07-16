@@ -69,7 +69,7 @@ router.post("/", requireAuth, async (req, res) => {
 
 router.put("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     const [habit] = await db.update(habitsTable).set(req.body)
       .where(and(eq(habitsTable.id, id), eq(habitsTable.userId, req.userId!))).returning();
     if (!habit) return res.status(404).json({ error: "Habit not found" });
@@ -79,7 +79,7 @@ router.put("/:id", requireAuth, async (req, res) => {
 
 router.delete("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     await db.delete(habitsTable).where(and(eq(habitsTable.id, id), eq(habitsTable.userId, req.userId!)));
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: "Failed to delete habit" }); }
@@ -88,7 +88,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
 // Toggle today's completion
 router.post("/:id/complete", requireAuth, async (req, res) => {
   try {
-    const habitId = parseInt(req.params.id);
+    const habitId = parseInt((req.params.id as string));
     const { date, note } = req.body;
     const targetDate = date ?? new Date().toISOString().slice(0, 10);
 
@@ -109,7 +109,7 @@ router.post("/:id/complete", requireAuth, async (req, res) => {
 // Get completions for a date range
 router.get("/:id/completions", requireAuth, async (req, res) => {
   try {
-    const habitId = parseInt(req.params.id);
+    const habitId = parseInt((req.params.id as string));
     const { start } = req.query as { start?: string };
     const fromDate = start ?? new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10);
     const completions = await db.select().from(habitCompletionsTable)

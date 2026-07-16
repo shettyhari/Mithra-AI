@@ -1,6 +1,5 @@
 import { pgTable, text, serial, timestamp, boolean, integer, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
 import { usersTable } from "./users";
 
 export const shoppingListsTable = pgTable("shopping_lists", {
@@ -37,5 +36,3 @@ export const insertShoppingItemSchema = createInsertSchema(shoppingItemsTable).o
 
 export type ShoppingList = typeof shoppingListsTable.$inferSelect;
 export type ShoppingItem = typeof shoppingItemsTable.$inferSelect;
-export type InsertShoppingList = z.infer<typeof insertShoppingListSchema>;
-export type InsertShoppingItem = z.infer<typeof insertShoppingItemSchema>;

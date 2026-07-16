@@ -1,6 +1,5 @@
 import { pgTable, text, serial, timestamp, integer, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
 import { usersTable } from "./users";
 
 export const filesTable = pgTable("files", {
@@ -24,5 +23,4 @@ export const filesTable = pgTable("files", {
 export const insertFileSchema = createInsertSchema(filesTable).omit({
   id: true, createdAt: true, updatedAt: true,
 });
-export type InsertFile = z.infer<typeof insertFileSchema>;
 export type UserFile = typeof filesTable.$inferSelect;

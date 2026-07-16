@@ -55,7 +55,7 @@ router.post("/", requireAuth, async (req, res) => {
 
 router.put("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     const { title, description, emoji, color, category, status, targetValue, currentValue, unit, dueDate, isSharedWithFamily } = req.body;
 
     const updates: Record<string, unknown> = {
@@ -76,7 +76,7 @@ router.put("/:id", requireAuth, async (req, res) => {
 
 router.delete("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     await db.delete(goalsTable)
       .where(and(eq(goalsTable.id, id), eq(goalsTable.userId, req.userId!)));
     res.json({ ok: true });
@@ -86,7 +86,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
 // Update progress
 router.patch("/:id/progress", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     const { value } = req.body;
     if (value === undefined) return res.status(400).json({ error: "value required" });
 
@@ -116,7 +116,7 @@ router.patch("/:id/progress", requireAuth, async (req, res) => {
 // ── Milestones ─────────────────────────────────────────────────────
 router.post("/:id/milestones", requireAuth, async (req, res) => {
   try {
-    const goalId = parseInt(req.params.id);
+    const goalId = parseInt((req.params.id as string));
     const { title, targetValue, dueDate, sortOrder } = req.body;
     if (!title) return res.status(400).json({ error: "title required" });
 
@@ -131,7 +131,7 @@ router.post("/:id/milestones", requireAuth, async (req, res) => {
 
 router.patch("/:id/milestones/:milestoneId", requireAuth, async (req, res) => {
   try {
-    const milestoneId = parseInt(req.params.milestoneId);
+    const milestoneId = parseInt((req.params.milestoneId as string));
     const { isCompleted, title, targetValue, dueDate } = req.body;
 
     const updates: Record<string, unknown> = { title, dueDate };
@@ -152,7 +152,7 @@ router.patch("/:id/milestones/:milestoneId", requireAuth, async (req, res) => {
 
 router.delete("/:id/milestones/:milestoneId", requireAuth, async (req, res) => {
   try {
-    const milestoneId = parseInt(req.params.milestoneId);
+    const milestoneId = parseInt((req.params.milestoneId as string));
     await db.delete(goalMilestonesTable)
       .where(and(eq(goalMilestonesTable.id, milestoneId), eq(goalMilestonesTable.userId, req.userId!)));
     res.json({ ok: true });
@@ -162,7 +162,7 @@ router.delete("/:id/milestones/:milestoneId", requireAuth, async (req, res) => {
 // AI coaching for a goal
 router.post("/:id/coach", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     const [goal] = await db.select().from(goalsTable)
       .where(and(eq(goalsTable.id, id), eq(goalsTable.userId, req.userId!)));
     if (!goal) return res.status(404).json({ error: "Goal not found" });

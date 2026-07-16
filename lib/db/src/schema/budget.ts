@@ -1,6 +1,5 @@
 import { pgTable, text, serial, timestamp, boolean, integer, index, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
 import { usersTable } from "./users";
 
 export const budgetCategoriesTable = pgTable("budget_categories", {
@@ -38,5 +37,3 @@ export const insertBudgetTransactionSchema = createInsertSchema(budgetTransactio
 
 export type BudgetCategory = typeof budgetCategoriesTable.$inferSelect;
 export type BudgetTransaction = typeof budgetTransactionsTable.$inferSelect;
-export type InsertBudgetCategory = z.infer<typeof insertBudgetCategorySchema>;
-export type InsertBudgetTransaction = z.infer<typeof insertBudgetTransactionSchema>;

@@ -31,7 +31,7 @@ router.post("/", requireAuth, async (req, res) => {
 
 router.put("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     const { triggerConfig, actionConfig, ...rest } = req.body;
     const [automation] = await db.update(automationsTable).set({
       ...rest,
@@ -45,7 +45,7 @@ router.put("/:id", requireAuth, async (req, res) => {
 
 router.delete("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     await db.delete(automationsTable).where(and(eq(automationsTable.id, id), eq(automationsTable.userId, req.userId!)));
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: "Failed to delete automation" }); }
@@ -54,7 +54,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
 // Manually run an automation
 router.post("/:id/run", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt((req.params.id as string));
     const [automation] = await db.select().from(automationsTable)
       .where(and(eq(automationsTable.id, id), eq(automationsTable.userId, req.userId!)));
     if (!automation) return res.status(404).json({ error: "Automation not found" });

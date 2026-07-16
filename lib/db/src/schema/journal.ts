@@ -1,6 +1,5 @@
 import { pgTable, text, serial, timestamp, integer, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
 import { usersTable } from "./users";
 
 export const journalEntriesTable = pgTable("journal_entries", {
@@ -26,4 +25,3 @@ export const insertJournalEntrySchema = createInsertSchema(journalEntriesTable).
 });
 
 export type JournalEntry = typeof journalEntriesTable.$inferSelect;
-export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;

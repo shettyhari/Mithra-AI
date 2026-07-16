@@ -1,6 +1,5 @@
 import { pgTable, text, serial, timestamp, boolean, integer, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
 import { usersTable } from "./users";
 
 export const habitsTable = pgTable("habits", {
@@ -34,6 +33,5 @@ export const habitCompletionsTable = pgTable("habit_completions", {
 export const insertHabitSchema = createInsertSchema(habitsTable).omit({
   id: true, createdAt: true,
 });
-export type InsertHabit = z.infer<typeof insertHabitSchema>;
 export type Habit = typeof habitsTable.$inferSelect;
 export type HabitCompletion = typeof habitCompletionsTable.$inferSelect;

@@ -1,6 +1,5 @@
 import { pgTable, text, serial, timestamp, integer, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
 import { usersTable } from "./users";
 import { chatsTable } from "./chats";
 
@@ -18,5 +17,4 @@ export const memoriesTable = pgTable("memories", {
 export const insertMemorySchema = createInsertSchema(memoriesTable).omit({
   id: true, createdAt: true,
 });
-export type InsertMemory = z.infer<typeof insertMemorySchema>;
 export type Memory = typeof memoriesTable.$inferSelect;

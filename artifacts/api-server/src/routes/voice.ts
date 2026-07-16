@@ -88,10 +88,11 @@ Examples:
 - "write in my journal today was great" → { "intent": "journal_entry", "content": "today was great", "spoken": "Opening your journal to write that down." }
 `;
 
-    const raw = await callAi(
+    const rawResponse = await callAi(
       [{ role: "user", content: transcript }],
-      undefined, 0.3, 500, systemPrompt
+      "gpt-4o-mini", 0.3, 500, systemPrompt
     );
+    const raw = rawResponse.content;
 
     let action: Record<string, string>;
     try {
