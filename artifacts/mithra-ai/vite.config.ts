@@ -27,23 +27,8 @@ if (!basePath) {
   );
 }
 
-// In production Replit builds, REPLIT_DOMAINS holds the live domain(s).
-// Bake the proxy URL at build time so Clerk can initialize without CNAME DNS.
-// In dev, leave it empty — dev Clerk instances don't use the proxy.
-const clerkProxyUrl = (() => {
-  if (process.env.VITE_CLERK_PROXY_URL) return process.env.VITE_CLERK_PROXY_URL;
-  if (process.env.NODE_ENV === 'production' && process.env.REPLIT_DOMAINS) {
-    const domain = process.env.REPLIT_DOMAINS.split(',')[0].trim();
-    return `https://${domain}/api/__clerk`;
-  }
-  return '';
-})();
-
 export default defineConfig({
   base: basePath,
-  define: {
-    'import.meta.env.VITE_CLERK_PROXY_URL': JSON.stringify(clerkProxyUrl),
-  },
   plugins: [
     react(),
     tailwindcss({ optimize: false }),

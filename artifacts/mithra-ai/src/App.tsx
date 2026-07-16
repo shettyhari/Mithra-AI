@@ -42,14 +42,14 @@ const PageSpinner = () => (
 );
 import { ThemeProvider } from "./lib/theme";
 
-// Prefer the env-var key baked in at build time; fall back to hostname derivation.
-// Never throw at module level — a missing key shows a graceful "unavailable" screen.
-const BAKED_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
-const clerkPubKey: string =
-  BAKED_KEY ||
-  publishableKeyFromHost(window.location.hostname, BAKED_KEY) ||
-  '';
+// REQUIRED — resolves the right key for both dev and production domains.
+const clerkPubKey = publishableKeyFromHost(
+  window.location.hostname,
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
+);
 
+// REQUIRED — empty in dev (intentional), auto-populated in prod by Replit.
+// Do NOT gate on NODE_ENV — the empty dev value is correct.
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -183,7 +183,7 @@ function ClerkProviderWithRoutes() {
   return (
     <ClerkProvider
       publishableKey={clerkPubKey}
-      {...(clerkProxyUrl ? { proxyUrl: clerkProxyUrl } : {})}
+      proxyUrl={clerkProxyUrl}
       appearance={clerkAppearance}
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}
