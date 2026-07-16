@@ -42,10 +42,13 @@ const PageSpinner = () => (
 );
 import { ThemeProvider } from "./lib/theme";
 
-const clerkPubKey = publishableKeyFromHost(
-  window.location.hostname,
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
-);
+// Prefer the env-var key baked in at build time; fall back to hostname derivation.
+// Never throw at module level — a missing key shows a graceful "unavailable" screen.
+const BAKED_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
+const clerkPubKey: string =
+  BAKED_KEY ||
+  publishableKeyFromHost(window.location.hostname, BAKED_KEY) ||
+  '';
 
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -54,10 +57,6 @@ function stripBase(path: string): string {
   return basePath && path.startsWith(basePath)
     ? path.slice(basePath.length) || "/"
     : path;
-}
-
-if (!clerkPubKey) {
-  throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env file');
 }
 
 const clerkAppearance = {

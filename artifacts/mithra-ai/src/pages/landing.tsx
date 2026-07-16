@@ -52,7 +52,7 @@ export default function LandingPage() {
         <motion.div
           className="max-w-4xl mx-auto space-y-8"
           variants={containerVariants}
-          initial="hidden"
+          initial="visible"
           animate="visible"
         >
           <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-200 text-xs font-medium mb-4">
@@ -87,7 +87,7 @@ export default function LandingPage() {
         <motion.div 
           className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-32 w-full pb-20"
           variants={containerVariants}
-          initial="hidden"
+          initial="visible"
           animate="visible"
         >
           <motion.div variants={itemVariants} className="glass-card p-6 rounded-2xl text-left border border-border/50 bg-white/[0.02]">
