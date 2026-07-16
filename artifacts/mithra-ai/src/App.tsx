@@ -1,8 +1,7 @@
 import { lazy, Suspense, useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, SignUp, Show, useAuth, useClerk, useUser } from '@clerk/react';
+import { ClerkProvider, SignIn, SignUp, Show, useClerk, useUser } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
-import { setAuthTokenGetter } from '@workspace/api-client-react';
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from 'wouter';
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
@@ -132,15 +131,6 @@ function SignUpPage() {
   );
 }
 
-/** Registers Clerk's getToken with the generated API client on every render cycle. */
-function AuthTokenRegistrar() {
-  const { getToken } = useAuth();
-  useEffect(() => {
-    setAuthTokenGetter(getToken);
-    return () => setAuthTokenGetter(null);
-  }, [getToken]);
-  return null;
-}
 
 function ClerkQueryClientCacheInvalidator() {
   const { addListener } = useClerk();
@@ -165,10 +155,16 @@ function ClerkQueryClientCacheInvalidator() {
 }
 
 function HomeRedirect() {
-  const { isLoaded, isSignedIn } = useAuth();
-  if (!isLoaded) return <PageSpinner />;
-  if (isSignedIn) return <Redirect to="/chat" />;
-  return <LandingPage />;
+  return (
+    <>
+      <Show when="signed-in">
+        <Redirect to="/chat" />
+      </Show>
+      <Show when="signed-out">
+        <LandingPage />
+      </Show>
+    </>
+  );
 }
 
 function ProtectedRoute({ component: Component, adminOnly = false }: { component: React.ComponentType, adminOnly?: boolean }) {
@@ -213,7 +209,6 @@ function ClerkProviderWithRoutes() {
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
       <QueryClientProvider client={queryClient}>
-        <AuthTokenRegistrar />
         <ClerkQueryClientCacheInvalidator />
         <TooltipProvider>
           <Suspense fallback={<PageSpinner />}>

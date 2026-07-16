@@ -27,25 +27,8 @@ if (!basePath) {
   );
 }
 
-// Derive Clerk proxy URL for production builds.
-// REPLIT_DOMAINS in a production build contains the live app domain(s).
-// VITE_CLERK_PROXY_URL must be baked in at build time so ClerkProvider
-// can proxy through the app instead of calling clerk.<domain> directly.
-const clerkProxyUrl = (() => {
-  if (process.env.VITE_CLERK_PROXY_URL) return process.env.VITE_CLERK_PROXY_URL;
-  if (process.env.NODE_ENV === 'production' && process.env.REPLIT_DOMAINS) {
-    const domain = process.env.REPLIT_DOMAINS.split(',')[0].trim();
-    return `https://${domain}/api/__clerk`;
-  }
-  return '';
-})();
-
 export default defineConfig({
   base: basePath,
-  define: {
-    // Override so the derived value is used even when the env var isn't set.
-    'import.meta.env.VITE_CLERK_PROXY_URL': JSON.stringify(clerkProxyUrl),
-  },
   plugins: [
     react(),
     tailwindcss({ optimize: false }),
